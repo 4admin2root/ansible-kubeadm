@@ -1,0 +1,5 @@
+elk_redis: 10.9.100.18
+elk_nginx_type: xuefb_nginx
+elk_nginx_log_file: access.log
+elk_nginx_log_path: /opt/xzx/log/nginx/
+elk_conf_path: /opt/docker_logstash/

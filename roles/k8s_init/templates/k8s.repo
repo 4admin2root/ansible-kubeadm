@@ -1,0 +1,5 @@
+[k8s_1.6.4]
+name=k8s
+baseurl=http://mirrors-i.xzxpay.com:8080/k8s/x86_64
+enabled=1
+gpgcheck=0

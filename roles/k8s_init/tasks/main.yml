@@ -1,0 +1,119 @@
+---
+#########################################################################
+# tested on centos 7
+# 2017-06-60
+# created by : lvzhijun
+# 1.init k8s cluster
+########################################################################
+#you can make repo by yourself , pls follow http://www.jianshu.com/p/8ce11f947410 , step 1
+- name: config repo
+  template: src=k8s.repo dest=/etc/yum.repos.d/k8s.repo owner=root group=root mode=0640
+# install kubeadm in all hosts
+- name: install docker engine
+  yum: name=kubeadm-{{ k8s_version }} state=present
+
+- name: install python-pip
+  yum: name=python-pip state=present
+
+- name: install docker-py
+  pip: name=docker-py
+
+- name: docker pull etcd
+  docker_image:
+    name: "{{ etcd_docker_url }}"
+  when: inventory_hostname in groups["etcd"]
+
+- name: docker pull quay.io/coreos/hyperkube
+  docker_image:
+    name: "{{ hyperkube_docker_url }}"
+  when: inventory_hostname in groups["master"]
+
+- name: etcd_init mkdir
+  file: path={{ etcd_data_dir }} state=directory mode=755
+
+- name: generate initial-cluster
+  local_action: template src=initial-cluster.j2 dest=/tmp  mode=0644
+  when: inventory_hostname in groups["etcd"]
+
+- name: load initial-cluster
+  include_vars:
+      file: /tmp/initial-cluster.j2
+
+- name: etcd_init docker run
+  docker_container:
+    name: etcd
+    image: "{{ etcd_docker_url }}"
+    recreate: yes
+    command: etcd -name {{ etcd_name }} -advertise-client-urls http://{{ inventory_hostname }}:2379 -listen-client-urls http://0.0.0.0:2379 -initial-advertise-peer-urls http://{{ inventory_hostname }}:2380 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "{{ initial_cluster }}" -initial-cluster-state new -data-dir {{ etcd_data_dir }}
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - "{{ etcd_data_dir }}:{{ etcd_data_dir }}"
+  when: inventory_hostname in groups["etcd"]
+
+
+- name: change kubelet.service add pod-infra-container-image
+  template: src=kubelet.service dest=/etc/systemd/system/kubelet.service mode=0755
+
+- name: change kubeadm.conf cgroup-driver
+  template: src=10-kubeadm.conf dest=/etc/systemd/system/kubelet.service.d/10-kubeadm.conf mode=0755
+
+- name: systemd reload
+  systemd:
+     daemon_reload: yes
+     name: kubelet
+      
+- name: sysctl 
+  sysctl: name="net.bridge.bridge-nf-call-iptables" value=1 sysctl_set=yes state=present reload=yes
+
+- name: enable services
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+        - kubelet
+        - docker
+
+# run kubeadm in commander
+- name: run kubeadm
+  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }}
+  when: inventory_hostname in groups["commander"]  and  network_provider  != 'flannel'
+
+- name: run kubeadm with flannel
+  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --pod-network-cidr={{ flannel_network_cidr }}
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
+
+- name: kubeadm copy admin.conf
+  shell: cp /etc/kubernetes/admin.conf $HOME/ && chown $(id -u):$(id -g) $HOME/admin.conf && export KUBECONFIG=$HOME/admin.conf && echo 'export KUBECONFIG=$HOME/admin.conf' >> $HOME/.bash_profile
+  when: inventory_hostname in groups["commander"]
+
+- name: k8s_init mkdir
+  file: path={{ k8s_temp_dir }} state=directory mode=755
+  when: inventory_hostname in groups["commander"]
+
+- name: copy flannel config file
+  template: src={{ item }} dest={{ k8s_temp_dir }} owner=root group=root mode=0640
+  with_items:
+       - kube-flannel-rbac.yml
+       - kube-flannel.yml
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
+
+- name: kubectl create flannel
+  shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/kube-flannel-rbac.yml && sleep 3 && kubectl create -f {{ k8s_temp_dir }}/kube-flannel.yml
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
+       
+- name: kubeadm join
+  shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ groups['commander'][0] }}:6443
+  when:  inventory_hostname not in groups["commander"]
+#todo
+#[root@cloud4ourself-k8sprod5 ~]# cp /etc/kubernetes/admin.conf $HOME/
+#[root@cloud4ourself-k8sprod5 ~]# chown $(id -u):$(id -g) $HOME/admin.conf
+#[root@cloud4ourself-k8sprod5 ~]# export KUBECONFIG=$HOME/admin.conf
+#[root@cloud4ourself-k8sprod5 ~]# kubectl get nodes
+#NAME                               STATUS     AGE       VERSION
+#cloud4ourself-k8sprod5.novalocal   NotReady   3m        v1.6.4
+#Run \"kubectl apply -f [podnetwork].yaml
+# flannel.yml  racl
+#
+# flannel.yml  must be with flannel-racl.yml  and kubeadm init  --pod-network-cidr=
+#kubeadm join --token 1732e8.da2263dfad7b89b2 10.9.5.65:6443
+# changed single etcd to cluster etcd

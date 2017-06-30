@@ -1,0 +1,5 @@
+##ansible-playbook -i k8s.hosts -s k8s_init.yml
+---
+- hosts: k8s
+  roles:
+       - k8s_init
