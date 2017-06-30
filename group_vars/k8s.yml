@@ -9,7 +9,13 @@ cgroup_driver: cgroupfs
 etcd_docker_url: "4admin2root/etcd-amd64:3.0.17"
 etcd_data_dir: /opt/etcd
 hyperkube_docker_url: "4admin2root/hyperkube:v{{ k8s_version }}_coreos.0"
-network_provider: flannel  #todo:calico.yml , weave
+network_provider: calico  #todo:calico.yml , weave
 flannel_docker_url: "4admin2root/flannel:v0.7.1-amd64"
 flannel_network_cidr: 10.244.0.0/16
-
+calico_etcd_endpoints: "http://10.96.232.136:6666"
+calico_etcd_clusterIP: 10.96.232.136
+calico_etcd_port: 6666
+calico_etcd_docker_url: "4admin2root/etcd:2.2.1"
+calico_node_docker_url: "4admin2root/node:v1.3.0"
+calico_cni_docker_url: "4admin2root/cni:v1.9.1"
+calico_policy_controller_docker_url: "4admin2root/kube-policy-controller:v0.6.0"

@@ -97,10 +97,18 @@
        - kube-flannel.yml
   when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
 
+- name: copy calico config file
+  template: src=calico.yaml dest={{ k8s_temp_dir }} owner=root group=root mode=0640
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'calico'
+
 - name: kubectl create flannel
   shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/kube-flannel-rbac.yml && sleep 3 && kubectl create -f {{ k8s_temp_dir }}/kube-flannel.yml
   when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
        
+- name: kubectl create calico
+  shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/calico.yaml
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'calico'
+
 - name: kubeadm join
   shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ groups['commander'][0] }}:6443
   when:  inventory_hostname not in groups["commander"]
