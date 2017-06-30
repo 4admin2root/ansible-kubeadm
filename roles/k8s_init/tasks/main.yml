@@ -109,19 +109,12 @@
   shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/calico.yaml
   when: inventory_hostname in groups["commander"]  and  network_provider  == 'calico'
 
+- name: kubectl create weave
+  shell: source $HOME/.bash_profile && kubectl apply -n kube-system -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'weave'
+
 - name: kubeadm join
   shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ groups['commander'][0] }}:6443
   when:  inventory_hostname not in groups["commander"]
 #todo
-#[root@cloud4ourself-k8sprod5 ~]# cp /etc/kubernetes/admin.conf $HOME/
-#[root@cloud4ourself-k8sprod5 ~]# chown $(id -u):$(id -g) $HOME/admin.conf
-#[root@cloud4ourself-k8sprod5 ~]# export KUBECONFIG=$HOME/admin.conf
-#[root@cloud4ourself-k8sprod5 ~]# kubectl get nodes
-#NAME                               STATUS     AGE       VERSION
-#cloud4ourself-k8sprod5.novalocal   NotReady   3m        v1.6.4
-#Run \"kubectl apply -f [podnetwork].yaml
-# flannel.yml  racl
-#
-# flannel.yml  must be with flannel-racl.yml  and kubeadm init  --pod-network-cidr=
-#kubeadm join --token 1732e8.da2263dfad7b89b2 10.9.5.65:6443
 # changed single etcd to cluster etcd
