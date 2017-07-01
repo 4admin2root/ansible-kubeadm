@@ -128,7 +128,7 @@
        - heapster
 
 - name: kubectl create heapster yaml
-  shell: source $HOME/.bash_profile && kubectl create -f {{ item }}
+  shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/{{ item }}
   with_items:
        - heapster.yaml
        - influxdb.yaml
