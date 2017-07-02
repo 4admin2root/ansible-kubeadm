@@ -1,4 +1,4 @@
-k8s_version: 1.6.4
+k8s_version: 1.6.6
 k8s_temp_dir: /opt/k8s_init
 KUBE_REPO_PREFIX: docker.io/4admin2root
 KUBE_HYPERKUBE_IMAGE: "4admin2root/hyperkube:v1.6.4_coreos.0"

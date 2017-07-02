@@ -85,7 +85,20 @@
 - name: kubeadm copy admin.conf
   shell: cp /etc/kubernetes/admin.conf $HOME/ && chown $(id -u):$(id -g) $HOME/admin.conf && export KUBECONFIG=$HOME/admin.conf && echo 'export KUBECONFIG=$HOME/admin.conf' >> $HOME/.bash_profile
   when: inventory_hostname in groups["commander"]
- #todo : wait for ource $HOME/.bash_profile && ubectl get nodes, if not then exit
+
+ #todo : wait for ource $HOME/.bash_profile && kubectl get nodes, if not then exit
+- name: test kubectl get nodes
+  shell: source $HOME/.bash_profile && kubectl get nodes
+  register: result_get_nodes
+  #until: result.stdout.find("NotReady") != -1
+  #retries: 2
+  #delay: 10
+  when: inventory_hostname in groups["commander"]
+
+- name: test kubectl get nodes result
+  shell: test {{ result_get_nodes.rc}} -eq 0
+  when: inventory_hostname in groups["commander"]
+  
 - name: k8s_init mkdir
   file: path={{ k8s_temp_dir }} state=directory mode=755
   when: inventory_hostname in groups["commander"]
@@ -143,7 +156,7 @@
   tags:
        - dashboard
 
-- name: kubectl create heapster yaml
+- name: kubectl create dashboard yaml
   shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/kubernetes-dashboard.yaml
   # kubectl proxy --address='10.9.5.65' --accept-hosts='.*'
   when:  inventory_hostname in groups["commander"]
@@ -153,7 +166,7 @@
 # changed single etcd to cluster etcd
 # apiserver
 # controller scheduler
-# dashboard
-# heapster
+# dashboard bug
+# heapster bug
 # ingress
 # efk
