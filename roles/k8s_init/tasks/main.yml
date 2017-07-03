@@ -25,7 +25,7 @@
 
 - name: docker pull quay.io/coreos/hyperkube
   docker_image:
-    name: "{{ hyperkube_docker_url }}"
+    name: "{{ KUBE_HYPERKUBE_IMAGE }}"
   when: inventory_hostname in groups["master"]
 
 - name: etcd_init mkdir
