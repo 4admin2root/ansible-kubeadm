@@ -164,6 +164,60 @@
   when:  inventory_hostname in groups["commander"]
   tags:
        - dashboard
+
+- name: copy efk yaml
+  template: src={{ item }} dest={{ k8s_temp_dir }} owner=root group=root mode=0640
+  with_items:
+       - es-clusterrole.yaml
+       - es-clusterrolebinding.yaml
+       - es-controller.yaml
+       - es-service.yaml
+       - es-serviceaccount.yaml
+       - fluentd-es-clusterrole.yaml
+       - fluentd-es-clusterrolebinding.yaml
+       - fluentd-es-ds.yaml
+       - fluentd-es-serviceaccount.yaml
+       - kibana-controller.yaml
+       - kibana-service.yaml
+  when:  inventory_hostname in groups["commander"]
+  tags:
+       - efk
+
+- name: kubectl create ekf yaml
+  shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/{{ item }}
+  with_items:
+       - es-clusterrole.yaml
+       - es-clusterrolebinding.yaml
+       - es-controller.yaml
+       - es-service.yaml
+       - es-serviceaccount.yaml
+       - fluentd-es-clusterrole.yaml
+       - fluentd-es-clusterrolebinding.yaml
+       - fluentd-es-ds.yaml
+       - fluentd-es-serviceaccount.yaml
+       - kibana-controller.yaml
+       - kibana-service.yaml
+  when:  inventory_hostname in groups["commander"]
+  tags:
+       - efk
+
+- name: generate kube-label
+  local_action: template src=kube-label.j2 dest=/tmp  mode=0644
+  when: inventory_hostname in groups["master"]
+  tags:
+       - efk_label
+
+- name: generate kube-label
+  copy: src=/tmp/kube-label.j2 dest=/tmp  mode=0644
+  when: inventory_hostname in groups["commander"]
+  tags:
+       - efk_label
+
+- name: kubectl label efk
+  shell: source $HOME/.bash_profile && bash /tmp/kube-label.j2
+  when:  inventory_hostname in groups["commander"]
+  tags:
+       - efk_label
 #todo
 # changed single etcd to cluster etcd
 # apiserver
