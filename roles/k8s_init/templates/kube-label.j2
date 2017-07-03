@@ -1,0 +1,3 @@
+{% for host in groups['master'] %}
+kubectl label node {{ hostvars[host]['ansible_nodename'] }} beta.kubernetes.io/fluentd-ds-ready=true
+{% endfor %}

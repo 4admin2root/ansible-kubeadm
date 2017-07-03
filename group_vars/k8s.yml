@@ -1,4 +1,4 @@
-k8s_version: 1.6.4
+k8s_version: 1.6.6
 k8s_temp_dir: /opt/k8s_init
 KUBE_REPO_PREFIX: docker.io/4admin2root
 KUBE_HYPERKUBE_IMAGE: "4admin2root/hyperkube:v1.6.4_coreos.0"
@@ -19,3 +19,11 @@ calico_etcd_docker_url: "4admin2root/etcd:2.2.1"
 calico_node_docker_url: "4admin2root/node:v1.3.0"
 calico_cni_docker_url: "4admin2root/cni:v1.9.1"
 calico_policy_controller_docker_url: "4admin2root/kube-policy-controller:v0.6.0"
+heapster_docker_url: "4admin2root/heapster-amd64:v1.3.0"
+heapster_influxdb_docker_url: "4admin2root/heapster-influxdb-amd64:v1.1.1"
+heapster_grafana_docker_url: "4admin2root/heapster-grafana-amd64:v4.0.2"
+dashboard_docker_url: "4admin2root/kubernetes-dashboard-amd64:v1.6.1"
+#efk
+elasticsearch_docker_url: "4admin2root/elasticsearch:v2.4.1-2"
+fluentd_elasticsearch_docker_url: "4admin2root/fluentd-elasticsearch:1.23"
+kibana_docker_url: "4admin2root/kibana:v4.6.1-1"
