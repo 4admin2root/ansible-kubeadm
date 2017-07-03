@@ -3,3 +3,7 @@
 ## edit k8s.hosts
 ## run
 ansible-playbook -i k8s.hosts -s k8s_init.yml
+## todo:
+ changed single etcd to cluster etcd
+ apiserver
+ controller scheduler
