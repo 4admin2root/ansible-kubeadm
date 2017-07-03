@@ -134,6 +134,7 @@
   template: src={{ item }} dest={{ k8s_temp_dir }} owner=root group=root mode=0640
   with_items:
        - heapster.yaml
+       - heapster-rbac.yaml
        - influxdb.yaml
        - grafana.yaml
   when:  inventory_hostname in groups["commander"]
@@ -144,6 +145,7 @@
   shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/{{ item }}
   with_items:
        - heapster.yaml
+       - heapster-rbac.yaml
        - influxdb.yaml
        - grafana.yaml
   when:  inventory_hostname in groups["commander"]
