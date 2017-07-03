@@ -1,0 +1,22 @@
+---
+#########################################################################
+# tested on centos 7
+# 2017-06-12
+# created by : lvzhijun
+# others : init docker
+# 1.install docker
+# 2.add aliyun mirror
+########################################################################
+# base on vm image:CentOS7.2_1612
+- name: copy docker repo file
+  copy: src=docker.repo dest=/etc/yum.repos.d/docker.repo owner=root group=root mode=0640
+# install docker engine
+- name: install docker engine
+  yum: name=docker-engine-{{ docker_version }} state=present
+# start docker
+- name: start docker
+  service: name=docker state=started
+# add registry-mirrors
+- name: copy daemon.json
+  copy: src=daemon.json dest=/etc/docker/daemon.json owner=root group=root mode=0640
+  notify: restart docker
