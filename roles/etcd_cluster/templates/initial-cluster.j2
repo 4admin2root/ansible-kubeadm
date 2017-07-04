@@ -1,5 +1,5 @@
 initial_cluster: "{% for host in groups['etcd'] -%}
-{{ hostvars[host]['etcd_name'] }}=http://{{ hostvars[host]['inventory_hostname'] }}:2380,
+{{ hostvars[host]['etcd_name'] }}=http://{{ hostvars[host]['inventory_hostname'] }}:{{ etcd_initial_cluster_port }},
 {%- endfor %}"
 etcd_cluster_endpoints: "{% for host in groups['etcd'] -%}
 http://{{ hostvars[host]['inventory_hostname'] }}:{{ etcd_port }},

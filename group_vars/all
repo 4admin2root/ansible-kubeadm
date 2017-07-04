@@ -1,1 +1,2 @@
 docker_version: 1.12.6
+etcd_cluster: false

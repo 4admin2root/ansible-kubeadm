@@ -1,5 +1,8 @@
 ##ansible-playbook -i k8s.hosts -s k8s_init.yml
 ---
+- hosts: etcd
+  roles:
+       - { role: etcd_cluster, when: " etcd_cluster == true" }
 - hosts: k8s
   roles:
        - k8s_init
