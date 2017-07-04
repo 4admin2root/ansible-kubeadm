@@ -130,10 +130,13 @@
 
 - name: kubectl create dashboard yaml
   shell: source $HOME/.bash_profile && kubectl create -f {{ k8s_temp_dir }}/kubernetes-dashboard.yaml
-  # kubectl proxy --address='10.9.5.65' --accept-hosts='.*'
   when:  inventory_hostname in groups["commander"]
   tags:
        - dashboard
+
+- name: kubectl proxy
+  shell: source $HOME/.bash_profile && nohup kubectl proxy --address={{ ansible_nodename }} --accept-hosts='.*' &
+  when:  inventory_hostname in groups["commander"] and kubectl_proxy == 'enable'
 
 - name: copy efk yaml
   template: src={{ item }} dest={{ k8s_temp_dir }} owner=root group=root mode=0640
