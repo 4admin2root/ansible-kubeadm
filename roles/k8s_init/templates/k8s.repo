@@ -1,6 +1,6 @@
-[aliyun_k8s]
-name=aliyun_k8s
-baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+[k8s]
+name=k8s
+baseurl=http://mirrors-i.xzxpay.com:8080/k8s/k8s_1.7
 enabled=1
 gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
