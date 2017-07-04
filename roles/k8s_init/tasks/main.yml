@@ -18,40 +18,10 @@
 - name: install docker-py
   pip: name=docker-py
 
-- name: docker pull etcd
-  docker_image:
-    name: "{{ etcd_docker_url }}"
-  when: inventory_hostname in groups["etcd"]
-
 - name: docker pull quay.io/coreos/hyperkube
   docker_image:
     name: "{{ KUBE_HYPERKUBE_IMAGE }}"
   when: inventory_hostname in groups["master"]
-
-- name: etcd_init mkdir
-  file: path={{ etcd_data_dir }} state=directory mode=755
-
-- name: generate initial-cluster
-  local_action: template src=initial-cluster.j2 dest=/tmp  mode=0644
-  when: inventory_hostname in groups["etcd"]
-
-- name: load initial-cluster
-  include_vars:
-      file: /tmp/initial-cluster.j2
-
-- name: etcd_init docker run
-  docker_container:
-    name: etcd
-    image: "{{ etcd_docker_url }}"
-    recreate: yes
-    command: etcd -name {{ etcd_name }} -advertise-client-urls http://{{ inventory_hostname }}:2379 -listen-client-urls http://0.0.0.0:2379 -initial-advertise-peer-urls http://{{ inventory_hostname }}:2380 -listen-peer-urls http://0.0.0.0:2380 -initial-cluster-token etcd-cluster -initial-cluster "{{ initial_cluster }}" -initial-cluster-state new -data-dir {{ etcd_data_dir }}
-    ports:
-      - "2379:2379"
-      - "2380:2380"
-    volumes:
-      - "{{ etcd_data_dir }}:{{ etcd_data_dir }}"
-  when: inventory_hostname in groups["etcd"]
-
 
 - name: change kubelet.service add pod-infra-container-image
   template: src=kubelet.service dest=/etc/systemd/system/kubelet.service mode=0755
