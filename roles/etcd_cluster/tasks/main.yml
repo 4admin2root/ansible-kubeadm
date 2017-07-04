@@ -1,0 +1,36 @@
+---
+- name: install python-pip
+  yum: name=python-pip state=present
+
+- name: install docker-py
+  pip: name=docker-py
+
+- name: docker pull etcd
+  docker_image:
+    name: "{{ etcd_docker_url }}"
+
+- name: etcd_init mkdir
+  file: path={{ etcd_data_dir }} state=directory mode=755
+  tags:
+     - etcd
+
+- name: generate initial-cluster
+  local_action: template src=initial-cluster.j2 dest=/tmp  mode=0644
+
+- name: load initial-cluster
+  include_vars:
+      file: /tmp/initial-cluster.j2
+
+- name: etcd_init docker run
+  docker_container:
+    name: etcd
+    image: "{{ etcd_docker_url }}"
+    recreate: yes
+    command: etcd -name {{ etcd_name }} -advertise-client-urls http://{{ inventory_hostname }}:{{ etcd_port }} -listen-client-urls http://0.0.0.0:{{ etcd_port }} -initial-advertise-peer-urls http://{{ inventory_hostname }}:{{ etcd_initial_cluster_port }} -listen-peer-urls http://0.0.0.0:{{ etcd_initial_cluster_port }} -initial-cluster-token etcd-cluster -initial-cluster "{{ initial_cluster }}" -initial-cluster-state new -data-dir {{ etcd_data_dir }}
+    ports:
+      - "{{ etcd_port }}:{{ etcd_port }}"
+      - "{{ etcd_initial_cluster_port }}:{{ etcd_initial_cluster_port }}"
+    volumes:
+      - "{{ etcd_data_dir }}:{{ etcd_data_dir }}"
+  tags:
+     - etcd
