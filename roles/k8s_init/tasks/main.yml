@@ -10,7 +10,11 @@
   template: src=k8s.repo dest=/etc/yum.repos.d/k8s.repo owner=root group=root mode=0640
 # install kubeadm in all hosts
 - name: install kubeadm
-  yum: name=kubeadm-{{ k8s_version }} state=present
+  yum: name={{ item }}-{{ k8s_version }} state=present
+  with_items:
+        - kubectl
+        - kubelet
+        - kubeadm
 
 - name: install python-pip
   yum: name=python-pip state=present
