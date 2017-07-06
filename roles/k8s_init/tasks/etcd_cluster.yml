@@ -1,0 +1,31 @@
+---
+- name: install etcd
+  yum: name=etcd state=present
+  when:  inventory_hostname in groups["commander"]
+# stop api server : mv manifests/kube-apiserver.yaml
+# etcdctl make-mirror --no-dest-prefix=true  --endpoints=127.0.0.1:2379 --insecure-skip-tls-verify=true 127.0.0.1:2369
+# stop etcd:mv manifests/etcd.yaml
+# start api server and check: mv manifests/kube-apiserver.yaml
+# =======
+# cp pki/*
+# openssl x509
+#   579  openssl genrsa -out apiserver-kube4.key 2048
+#     580  openssl req -new -key apiserver-kube4.key -subj "/CN=kube-apiserver," -out apiserver-kube4.csr
+#       589  vim apiserver-kube4.ext
+#       subjectAltName = DNS:wudang,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, IP:10.96.0.1, IP:10.9.5.70
+#
+#         603   openssl x509 -req -in apiserver-kube4.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out apiserver-kube4.crt -days 365 -extfile apiserver-kube4.ext
+#
+# cp api.yaml to slaves and eidt it(key,crt)
+# then check api status
+#============
+#edit /etc/kubernetes/kubelet.conf;server: https://10.9.5.105:6443 
+#systemctl daemon-reload  restart kubelet
+#cp kube-scheduler.yaml  kube-controller-manager.yaml and conf file
+#kubectl label node kube4 node-role.kubernetes.io/master
+#kubectl taint nodes kube5 node-role.kubernetes.io/master=:NoSchedule
+#nginx lb and keepalive
+#kubectl get configmap/kube-proxy -n kube-system -o yam   and edit
+#the restart it 
+#=====================
+# restart kubectl proxy : kubectl proxy ok?

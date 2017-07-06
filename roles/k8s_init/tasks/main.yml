@@ -192,10 +192,8 @@
   tags:
        - efk_label
 #todo
-- name: install etcd3
-  yum: name=etcd state=present
-  when:  inventory_hostname in groups["commander"]
-  tags: k8s_etcd_cluster
+- include: ectd_cluster.yml
+  when: etcd_cluster == true
 
 
 # changed single etcd to cluster etcd
