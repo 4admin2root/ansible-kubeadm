@@ -1,8 +1,15 @@
 ---
 - name: install etcd
-  yum: name=etcd state=present
+  yum: name={{ item }} state=present
+  with_items:
+      - etcd
+      - expect
   when:  inventory_hostname in groups["commander"]
+
+- name: copy etc_make_mirror scripts
+  copy: src={{ item }} dest={{ k8s_temp_dir }}
 # stop api server : mv manifests/kube-apiserver.yaml
+# yum install expect
 # etcdctl make-mirror --no-dest-prefix=true  --endpoints=127.0.0.1:2379 --insecure-skip-tls-verify=true 127.0.0.1:2369
 # stop etcd:mv manifests/etcd.yaml
 # start api server and check: mv manifests/kube-apiserver.yaml

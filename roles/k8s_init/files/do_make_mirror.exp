@@ -1,0 +1,11 @@
+#!/usr/bin/expect -d
+set timeout 120
+spawn "./etcd.sh"
+expect {
+        "\[1-9\]" { send \003 }
+        timeout { puts "error or timeout";exit 1 }
+        }
+#if { $expect_out(0,string) > 0 } {
+#   send \003 }
+#send \003
+#interact
