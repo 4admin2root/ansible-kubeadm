@@ -192,7 +192,7 @@
   tags:
        - efk_label
 #todo
-- include: ectd_cluster.yml
+- include: etcd_cluster.yml
   when: etcd_cluster == true
 
 
