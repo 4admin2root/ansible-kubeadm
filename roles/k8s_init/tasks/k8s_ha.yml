@@ -7,7 +7,44 @@
   when:  inventory_hostname in groups["commander"]
 
 - name: copy etc_make_mirror scripts
-  copy: src={{ item }} dest={{ k8s_temp_dir }}
+  copy: src=do_make_mirror.exp dest={{ k8s_temp_dir }} owner=root mode=754
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: copy etc_make_mirror scripts
+  template: src=etcd.sh dest={{ k8s_temp_dir }} owner=root mode=754
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: check all pods is running
+  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
+  register: result
+  until: result.rc == 0
+  retries: 50
+  delay: 10
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: stop apiserver and do etcd_make_mirror scripts
+  shell: mv /etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/ && sleep 10 && cd {{ k8s_temp_dir }} && ./do_make_mirror.exp
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: change port in kube-apiserver.yaml
+  shell: sed -i 's/127.0.0.1:2379/127\.0\.0\.1:{{ etcd_port }}/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: wait for apiserver
+  wait_for: host={{ inventory_hostname }} port=6443 delay=10
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: stop singel etcd
+  shell: mv /etc/kubernetes/manifests/etcd.yaml /etc/kubernetes/ 
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
 # stop api server : mv manifests/kube-apiserver.yaml
 # yum install expect
 # etcdctl make-mirror --no-dest-prefix=true  --endpoints=127.0.0.1:2379 --insecure-skip-tls-verify=true 127.0.0.1:2369

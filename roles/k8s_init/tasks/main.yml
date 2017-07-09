@@ -193,7 +193,7 @@
        - efk_label
 #todo
 - include: k8s_ha.yml
-  when: etcd_cluster == true
+  when: k8s_cluster == true
 
 
 # changed single etcd to cluster etcd

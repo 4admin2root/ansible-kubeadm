@@ -16,10 +16,14 @@
 
 - name: generate initial-cluster
   local_action: template src=initial-cluster.j2 dest=/tmp  mode=0644
+  tags:
+     - etcd
 
 - name: load initial-cluster
   include_vars:
       file: /tmp/initial-cluster.j2
+  tags:
+     - etcd
 
 - name: etcd_init docker run
   docker_container:
@@ -28,7 +32,7 @@
     recreate: yes
     restart_policy: always
     network_mode: host
-    command: etcd -name {{ etcd_name }} -advertise-client-urls http://{{ inventory_hostname }}:{{ etcd_port }} -listen-client-urls http://0.0.0.0:{{ etcd_port }} -initial-advertise-peer-urls http://{{ inventory_hostname }}:{{ etcd_initial_cluster_port }} -listen-peer-urls http://0.0.0.0:{{ etcd_initial_cluster_port }} -initial-cluster-token etcd-cluster -initial-cluster "{{ initial_cluster }}" -initial-cluster-state new -data-dir {{ etcd_data_dir }}
+    command: etcd -name {{ etcd_name }} -advertise-client-urls http://127.0.0.1:{{ etcd_port }} -listen-client-urls http://127.0.0.1:{{ etcd_port }} -initial-advertise-peer-urls http://{{ inventory_hostname }}:{{ etcd_initial_cluster_port }} -listen-peer-urls http://0.0.0.0:{{ etcd_initial_cluster_port }} -initial-cluster-token etcd-cluster -initial-cluster "{{ initial_cluster }}" -initial-cluster-state new -data-dir {{ etcd_data_dir }}
     #ports:
     #  - "{{ etcd_port }}:{{ etcd_port }}"
     #  - "{{ etcd_initial_cluster_port }}:{{ etcd_initial_cluster_port }}"

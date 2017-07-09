@@ -28,3 +28,4 @@ fluentd_elasticsearch_docker_url: "4admin2root/fluentd-elasticsearch:1.23"
 kibana_docker_url: "4admin2root/kibana:v4.6.1-1"
 #kubectl proxy
 kubectl_proxy: enable
+k8s_cluster: true
