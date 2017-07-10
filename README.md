@@ -17,4 +17,6 @@ ssh kube$i 'sudo kubeadm reset;sudo docker stop etcd ;sudo docker rm etcd;sudo r
 done
 ```
 ## todo:
+apiserver loadbalance
+kube-proxy
 glusterfs
