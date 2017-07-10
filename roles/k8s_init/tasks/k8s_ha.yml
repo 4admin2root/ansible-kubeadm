@@ -4,6 +4,7 @@
   with_items:
       - etcd
       - expect
+      - screen
   when:  inventory_hostname in groups["commander"]
 
 - name: copy etc_make_mirror scripts
@@ -46,22 +47,17 @@
   tags: test
 
 - name:  make python simplehttpserver for get pki files
-  shell: cd /etc/kubernetes/ && nohup python -m SimpleHTTPServer 18888 &
+  shell: cd /etc/kubernetes/ && screen -d -m python -m SimpleHTTPServer 18888 
   when:  inventory_hostname in groups["commander"]
   tags: testapi
 
 - name: wait for simplehttpserver
   wait_for: host={{ inventory_hostname }} port=18888 delay=10
   when:  inventory_hostname in groups["commander"]
-  tags: test
-
-- name: wait for simplehttpserver
-  shell: sleep 5
-  when:  inventory_hostname in groups["commander"]
-  tags: test
+  tags: testapi
 
 - name: download pki files
-  get_url: 
+  get_url:
       url: http://{{ groups["commander"][0] }}:18888/{{ item }}
       dest: /etc/kubernetes/pki/
       mode: 0600
@@ -78,7 +74,7 @@
         - pki/sa.key
         - pki/sa.pub
   when:  inventory_hostname in groups["slave"]
-  tags: testapid
+  tags: testapi
 
 - name: download conf files
   get_url: 
@@ -92,7 +88,7 @@
         - manifests/kube-controller-manager.yaml
         - manifests/kube-scheduler.yaml
   when:  inventory_hostname in groups["slave"]
-  tags: testapid
+  tags: testapi
 
 - name: stop python simpleserver
   shell: kill `ps -ef |grep SimpleHTTPServer |awk '{print $2}'`
