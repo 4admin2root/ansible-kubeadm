@@ -1,11 +1,18 @@
 ---
-- name: install etcd
+- name: install etcd expect screen
   yum: name={{ item }} state=present
   with_items:
       - etcd
       - expect
       - screen
   when:  inventory_hostname in groups["commander"]
+
+- name: install nginx keepalive
+  yum: name={{ item }} state=present
+  with_items:
+      - nginx
+      - keepalived
+  when:  inventory_hostname in groups["master"]
 
 - name: copy etc_make_mirror scripts
   copy: src=do_make_mirror.exp dest={{ k8s_temp_dir }} owner=root mode=754

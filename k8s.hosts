@@ -4,8 +4,8 @@ k8sprod2
 k8sprod3
 
 [slave]
-k8sprod5
-k8sprod4
+k8sprod5 k8s_api_vip=10.9.5.243
+k8sprod4 k8s_api_vip=10.9.5.243
 [commander]
 k8sprod6 k8s_api_vip=10.9.5.243
 
