@@ -45,11 +45,61 @@
   when:  inventory_hostname in groups["commander"]
   tags: test
 
-# stop api server : mv manifests/kube-apiserver.yaml
-# yum install expect
-# etcdctl make-mirror --no-dest-prefix=true  --endpoints=127.0.0.1:2379 --insecure-skip-tls-verify=true 127.0.0.1:2369
-# stop etcd:mv manifests/etcd.yaml
-# start api server and check: mv manifests/kube-apiserver.yaml
+- name:  make python simplehttpserver for get pki files
+  shell: cd /etc/kubernetes/ && nohup python -m SimpleHTTPServer 18888 &
+  when:  inventory_hostname in groups["commander"]
+  tags: testapi
+
+- name: wait for simplehttpserver
+  wait_for: host={{ inventory_hostname }} port=18888 delay=10
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: wait for simplehttpserver
+  shell: sleep 10
+  when:  inventory_hostname in groups["commander"]
+  tags: test
+
+- name: download pki files
+  get_url: 
+      url: http://{{ groups["commander"][0] }}:18888/{{ item }}
+      dest: /etc/kubernetes/pki/
+  with_items:
+        - pki/apiserver.crt
+        - pki/apiserver.key
+        - pki/apiserver-kubelet-client.crt
+        - pki/apiserver-kubelet-client.key
+        - pki/ca.key
+        - pki/front-proxy-ca.crt
+        - pki/front-proxy-ca.key
+        - pki/front-proxy-client.crt
+        - pki/front-proxy-client.key
+        - pki/sa.key
+        - pki/sa.pub
+  when:  inventory_hostname in groups["slave"]
+  tags: testapid
+
+- name: download conf files
+  get_url: 
+      url: http://{{ groups["commander"][0] }}:18888/{{ item }}
+      dest: /etc/kubernetes/
+  with_items:
+        - admin.conf
+        - controller-manager.conf
+        - scheduler.conf
+        - manifests/kube-apiserver.yaml
+        - manifests/kube-controller-manager.yaml
+        - manifests/kube-scheduler.yaml
+  when:  inventory_hostname in groups["slave"]
+  tags: testapid
+
+- name: stop python simpleserver
+  shell: kill `ps -ef |grep SimpleHTTPServer |awk '{print $2}'`
+  ignore_errors: True
+  when:  inventory_hostname in groups["commander"]
+  tags: testapi
+
+
 # =======
 # cp pki/*
 # openssl x509
