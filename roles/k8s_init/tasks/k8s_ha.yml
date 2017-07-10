@@ -16,12 +16,12 @@
   when:  inventory_hostname in groups["commander"]
   tags: test
 
-- name: check all pods are running
+- name: check all pods are running __WARNING__ if too many pods in ContainerCreating, you can download docker images first, and then rerun it
   shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
   register: result
   until: result.rc == 0
-  retries: 50
-  delay: 10
+  retries: 60
+  delay: 20
   when:  inventory_hostname in groups["commander"]
   tags: test
 
