@@ -16,7 +16,7 @@
   when:  inventory_hostname in groups["commander"]
   tags: test
 
-- name: check all pods is running
+- name: check all pods are running
   shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
   register: result
   until: result.rc == 0
@@ -56,7 +56,7 @@
   tags: test
 
 - name: wait for simplehttpserver
-  shell: sleep 10
+  shell: sleep 5
   when:  inventory_hostname in groups["commander"]
   tags: test
 
@@ -64,6 +64,7 @@
   get_url: 
       url: http://{{ groups["commander"][0] }}:18888/{{ item }}
       dest: /etc/kubernetes/pki/
+      mode: 0600
   with_items:
         - pki/apiserver.crt
         - pki/apiserver.key
@@ -99,27 +100,111 @@
   when:  inventory_hostname in groups["commander"]
   tags: testapi
 
+- name: create pki files on slave nodes
+  shell: cd /etc/kubernetes/pki/ && openssl genrsa -out apiserver-{{ inventory_hostname }}.key 2048 && openssl req -new -key apiserver-{{ inventory_hostname }}.key -subj "/CN=kube-apiserver," -out apiserver-{{ inventory_hostname }}.csr
+  when:  inventory_hostname in groups["slave"]
+  tags: createpki
 
+- name: create extfile
+  template: src=apiserver-extfile.ext dest=/etc/kubernetes/pki/ owner=root mode=600
+  when:  inventory_hostname in groups["slave"]
+  tags: createpki
+
+- name: create crt file
+  shell: cd /etc/kubernetes/pki/ && openssl x509 -req -in apiserver-{{ inventory_hostname }}.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out apiserver-{{ inventory_hostname }}.crt -days 365 -extfile apiserver-extfile.ext
+  when:  inventory_hostname in groups["slave"]
+  tags: createpki
+
+- name: change key files in apiserver.yaml
+  shell: sed -i 's/apiserver.key/apiserver-{{ inventory_hostname }}\.key/' /etc/kubernetes/kube-apiserver.yaml 
+  when:  inventory_hostname in groups["slave"]
+  tags: createpki
+
+- name: change key files in apiserver.yaml and start apiserver on localhost
+  shell: sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/
+  when:  inventory_hostname in groups["slave"]
+  tags: createpki
+
+- name: check all pods are running
+  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
+  register: result
+  until: result.rc == 0
+  retries: 50
+  delay: 10
+  when:  inventory_hostname in groups["commander"]
+  tags: createpki
 # =======
-# cp pki/*
-# openssl x509
-#   579  openssl genrsa -out apiserver-kube4.key 2048
-#     580  openssl req -new -key apiserver-kube4.key -subj "/CN=kube-apiserver," -out apiserver-kube4.csr
-#       589  vim apiserver-kube4.ext
-#       subjectAltName = DNS:wudang,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, IP:10.96.0.1, IP:10.9.5.70
-#
-#         603   openssl x509 -req -in apiserver-kube4.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out apiserver-kube4.crt -days 365 -extfile apiserver-kube4.ext
-#
-# cp api.yaml to slaves and eidt it(key,crt)
-# then check api status
-#============
-#edit /etc/kubernetes/kubelet.conf;server: https://10.9.5.105:6443 
-#systemctl daemon-reload  restart kubelet
-#cp kube-scheduler.yaml  kube-controller-manager.yaml and conf file
-#kubectl label node kube4 node-role.kubernetes.io/master
-#kubectl taint nodes kube5 node-role.kubernetes.io/master=:NoSchedule
+- name: change apiserver address in kubelet.yaml
+  shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/kubelet.conf 
+  when:  inventory_hostname in groups["slave"]
+  tags: kubelet
+
+- name: restart kubelet
+  service: name=kubelet state=restarted
+  when:  inventory_hostname in groups["slave"]
+  tags: kubelet
+
+- name: check all nodes are running
+  shell: source $HOME/.bash_profile && test `kubectl get nodes |grep NotReady | wc -l` -eq 0
+  register: result
+  until: result.rc == 0
+  retries: 50
+  delay: 10
+  when:  inventory_hostname in groups["commander"]
+  tags: kubelet
+# ======
+- name: change apiserver address in scheduler.conf
+  shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/scheduler.conf && mv /etc/kubernetes/kube-scheduler.yaml /etc/kubernetes/manifests
+  when:  inventory_hostname in groups["slave"]
+  tags: scheduler
+
+- name: check all scheduler are running
+  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep scheduler |grep -v Running | wc -l` -eq 0
+  register: result
+  until: result.rc == 0
+  retries: 50
+  delay: 10
+  when:  inventory_hostname in groups["commander"]
+  tags: scheduler
+
+# ======
+- name: change apiserver address in controller-manager.conf.conf
+  shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/controller-manager.conf && mv /etc/kubernetes/kube-controller-manager.yaml /etc/kubernetes/manifests
+  when:  inventory_hostname in groups["slave"]
+  tags: controller-manager
+
+- name: check all controller-manager are running
+  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep controller-manager |grep -v Running | wc -l` -eq 0
+  register: result
+  until: result.rc == 0
+  retries: 50
+  delay: 10
+  when:  inventory_hostname in groups["commander"]
+  tags: controller-manager
+# =======
+- name: copy admin.conf
+  shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/admin.conf && cp /etc/kubernetes/admin.conf $HOME && chmod 600 $HOME/admin.conf
+  when:  inventory_hostname in groups["slave"]
+  tags: label-master
+
+- name: set bash_profile
+  shell: echo 'export KUBECONFIG=$HOME/admin.conf' >> $HOME/.bash_profile 
+  when:  inventory_hostname in groups["slave"]
+  tags: label-master
+
+#k8s_master_scheduled: true
+- name: label node noschedule
+  shell: source $HOME/.bash_profile && kubectl label node {{ ansible_nodename }} node-role.kubernetes.io/master=
+  when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
+  tags: label-master
+
+- name: taint node
+  shell: source $HOME/.bash_profile && kubectl taint node {{ ansible_nodename }} node-role.kubernetes.io/master=:NoSchedule
+  when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
+  tags: label-master
+
 #nginx lb and keepalive
 #kubectl get configmap/kube-proxy -n kube-system -o yam   and edit
-#the restart it 
+#then restart it 
 #=====================
 # restart kubectl proxy : kubectl proxy ok?

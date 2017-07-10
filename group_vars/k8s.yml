@@ -29,3 +29,4 @@ kibana_docker_url: "4admin2root/kibana:v4.6.1-1"
 #kubectl proxy
 kubectl_proxy: enable
 k8s_cluster: true
+k8s_master_scheduled: true

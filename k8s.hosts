@@ -1,18 +1,18 @@
 [node]
-kube1
-kube2
-kube3
+k8sprod1
+k8sprod2
+k8sprod3
 
 [slave]
-kube4
-kube3
+k8sprod5
+k8sprod4
 [commander]
-kube5 k8s_api_vip=10.9.5.243
+k8sprod6 k8s_api_vip=10.9.5.243
 
 [etcd]
-kube3 etcd_name=k8s_etcd2 etcd_port=2369 etcd_initial_cluster_port=2370
-kube4 etcd_name=k8s_etcd3 etcd_port=2369 etcd_initial_cluster_port=2370
-kube5 etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
+k8sprod6 etcd_name=k8s_etcd2 etcd_port=2369 etcd_initial_cluster_port=2370
+k8sprod4 etcd_name=k8s_etcd3 etcd_port=2369 etcd_initial_cluster_port=2370
+k8sprod5 etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
 # the hostname must be queried by dns server
 
 
