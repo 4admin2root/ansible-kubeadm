@@ -205,11 +205,30 @@
   when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
   tags: label-master
 
-- name: install nginx with-stream
-  shell: echo 'todo'
+- name: install nginx repo
+  template: src=nginx.repo dest=/etc/yum.repos.d/ owner=root mode=650
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
+- name: install nginx pkg
+  yum: name=nginx enablerepo=nginx
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
+- name: copy nginx.conf
+  template: src=nginx.conf dest=/etc/nginx/ owner=root mode=644
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
+- name: start nginx
+  service: name=nginx state=started
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
 
 #nginx lb and keepalive
+#kubelet in nodes
 #kubectl get configmap/kube-proxy -n kube-system -o yam   and edit
+#update hosts file
 #then restart it 
 #=====================
 # restart kubectl proxy : kubectl proxy ok?
