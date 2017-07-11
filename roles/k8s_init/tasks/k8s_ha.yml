@@ -10,7 +10,6 @@
 - name: install nginx keepalive
   yum: name={{ item }} state=present
   with_items:
-      - nginx
       - keepalived
   when:  inventory_hostname in groups["master"]
 
@@ -205,6 +204,9 @@
   shell: source $HOME/.bash_profile && kubectl taint node {{ ansible_nodename }} node-role.kubernetes.io/master=:NoSchedule
   when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
   tags: label-master
+
+- name: install nginx with-stream
+  shell: echo 'todo'
 
 #nginx lb and keepalive
 #kubectl get configmap/kube-proxy -n kube-system -o yam   and edit
