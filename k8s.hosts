@@ -4,10 +4,10 @@ k8sprod2
 k8sprod3
 
 [slave]
-k8sprod5 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443
-k8sprod4 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443
+k8sprod5 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=80
+k8sprod4 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=50
 [commander]
-k8sprod6 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443
+k8sprod6 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=90
 
 [etcd]
 k8sprod6 etcd_name=k8s_etcd2 etcd_port=2369 etcd_initial_cluster_port=2370

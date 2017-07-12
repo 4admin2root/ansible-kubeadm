@@ -28,5 +28,11 @@ fluentd_elasticsearch_docker_url: "4admin2root/fluentd-elasticsearch:1.23"
 kibana_docker_url: "4admin2root/kibana:v4.6.1-1"
 #kubectl proxy
 kubectl_proxy: enable
+#k8s_cluster
 k8s_cluster: true
 k8s_master_scheduled: true
+#keepalived
+ka_email_to: "ops@synjones.net"
+ka_email_from: "alert@synjones.net"
+ka_smtp_server: "10.9.5.70"
+ka_interface: "eth0"
