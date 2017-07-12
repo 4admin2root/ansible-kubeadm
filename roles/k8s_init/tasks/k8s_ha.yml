@@ -271,6 +271,17 @@
   shell: source $HOME/.bash_profile && kubectl apply -f {{ k8s_temp_dir }}/kube-proxy.configmap
   when:  inventory_hostname in groups["commander"]
   tags: kube-proxy
-#then restart it 
-#=====================
-# restart kubectl proxy : kubectl proxy ok?
+
+- name: restart kube-proxy
+  shell: source $HOME/.bash_profile && kubectl get pods -n kube-system |grep kube-proxy |awk '{ print $1}' |while read line;do echo kubectl delete pods/$line -n kube-system; sleep 5;done
+  when:  inventory_hostname in groups["commander"]
+  tags: kube-proxy
+
+- name: check all pods are running
+  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
+  register: result
+  until: result.rc == 0
+  retries: 60
+  delay: 20
+  when:  inventory_hostname in groups["commander"]
+  tags: kube-proxy
