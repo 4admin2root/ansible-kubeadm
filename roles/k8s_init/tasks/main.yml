@@ -52,6 +52,19 @@
   shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --pod-network-cidr={{ flannel_network_cidr }}
   when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
 
+- name: add ip addr for commander
+  shell: ip addr add {{ k8s_api_vip }} dev {{ ka_interface }}
+  when: inventory_hostname in groups["commander"]  and k8s_cluster == true
+
+- name: run kubeadm when k8s_cluster
+  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --apiserver-advertise-address {{ k8s_api_vip }}
+  when: inventory_hostname in groups["commander"]  and  network_provider  != 'flannel' and k8s_cluster == true
+
+- name: run kubeadm with flannel when k8s_cluster
+  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --pod-network-cidr={{ flannel_network_cidr }} --apiserver-advertise-address {{ k8s_api_vip }}
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel' and k8s_cluster == true
+
+
 - name: kubeadm copy admin.conf
   shell: cp /etc/kubernetes/admin.conf $HOME/ && chown $(id -u):$(id -g) $HOME/admin.conf && export KUBECONFIG=$HOME/admin.conf && echo 'export KUBECONFIG=$HOME/admin.conf' >> $HOME/.bash_profile
   when: inventory_hostname in groups["commander"]

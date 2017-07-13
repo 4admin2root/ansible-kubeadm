@@ -285,3 +285,11 @@
   delay: 20
   when:  inventory_hostname in groups["commander"]
   tags: kube-proxy
+
+- name: scale kube-dns
+  shell: source $HOME/.bash_profile && kubectl scale deploy/kube-dns  --replicas=3 -n kube-system
+  when:  inventory_hostname in groups["commander"]
+
+#######
+#kube-apiserver.yaml(--advertise-address=10.9.5.64)
+#svc kube-dns and kubernetes-dashboard with apiserver ip : 10.96.0.1
