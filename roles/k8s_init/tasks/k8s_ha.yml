@@ -232,7 +232,7 @@
   tags: nginx
 
 - name: start nginx
-  service: name=nginx state=started
+  service: name=nginx state=restarted
   when:  inventory_hostname in groups["master"]
   tags: nginx
 
@@ -242,7 +242,7 @@
   tags: ka
 
 - name: start keepalived
-  service: name=keepalived state=started
+  service: name=keepalived state=restarted
   when:  inventory_hostname in groups["master"]
   tags: ka
 
