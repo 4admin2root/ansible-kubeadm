@@ -46,11 +46,11 @@
 # run kubeadm in commander
 - name: run kubeadm
   shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }}
-  when: inventory_hostname in groups["commander"]  and  network_provider  != 'flannel'
+  when: inventory_hostname in groups["commander"]  and  network_provider  != 'flannel' and  k8s_cluster != true
 
 - name: run kubeadm with flannel
   shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --pod-network-cidr={{ flannel_network_cidr }}
-  when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel'
+  when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel' and  k8s_cluster != true
 
 - name: add ip addr for commander
   shell: ip addr add {{ k8s_api_vip }} dev {{ ka_interface }}
@@ -111,7 +111,11 @@
 
 - name: kubeadm join
   shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ groups['commander'][0] }}:6443
-  when:  inventory_hostname not in groups["commander"]
+  when:  inventory_hostname not in groups["commander"] and   k8s_cluster != true
+
+- name: kubeadm join
+  shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ hostvars[groups['commander'][0]]['k8s_api_vip'] }}:6443
+  when:  inventory_hostname not in groups["commander"]  and   k8s_cluster == true
 
 - name: copy heapster yaml
   template: src={{ item }} dest={{ k8s_temp_dir }} owner=root group=root mode=0640
