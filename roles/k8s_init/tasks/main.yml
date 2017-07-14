@@ -57,11 +57,11 @@
   when: inventory_hostname in groups["commander"]  and k8s_cluster == true
 
 - name: run kubeadm when k8s_cluster
-  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --apiserver-advertise-address {{ k8s_api_vip }}
+  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --apiserver-advertise-address {{ k8s_api_vip }} --apiserver-bind-port {{ k8s_api_vip_port }}
   when: inventory_hostname in groups["commander"]  and  network_provider  != 'flannel' and k8s_cluster == true
 
 - name: run kubeadm with flannel when k8s_cluster
-  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --pod-network-cidr={{ flannel_network_cidr }} --apiserver-advertise-address {{ k8s_api_vip }}
+  shell: KUBE_ETCD_IMAGE={{ KUBE_ETCD_IMAGE }} KUBE_REPO_PREFIX={{ KUBE_REPO_PREFIX }} KUBE_HYPERKUBE_IMAGE={{ KUBE_HYPERKUBE_IMAGE }} kubeadm init  --token {{ kubeadm_token }} --pod-network-cidr={{ flannel_network_cidr }} --apiserver-advertise-address {{ k8s_api_vip }} --apiserver-bind-port {{ k8s_api_vip_port }}
   when: inventory_hostname in groups["commander"]  and  network_provider  == 'flannel' and k8s_cluster == true
 
 
@@ -114,7 +114,7 @@
   when:  inventory_hostname not in groups["commander"] and   k8s_cluster != true
 
 - name: kubeadm join
-  shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ hostvars[groups['commander'][0]]['k8s_api_vip'] }}:6443
+  shell: kubeadm join --token 1732e8.da2263dfad7b89b2 {{ hostvars[groups['commander'][0]]['k8s_api_vip'] }}:{{ hostvars[groups['commander'][0]]['k8s_api_vip_port'] }}
   when:  inventory_hostname not in groups["commander"]  and   k8s_cluster == true
 
 - name: copy heapster yaml
