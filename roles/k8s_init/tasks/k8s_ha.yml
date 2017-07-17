@@ -142,7 +142,7 @@
   tags: createpki
 
 - name: change apiserver in commander
-  shell: mv /etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/ && sed -i 's/apiserver.key/apiserver-{{ inventory_hostname }}\.key/' /etc/kubernetes/kube-apiserver.yaml &&  sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/kube-apiserver.yaml &&sed -i 's/{{ k8s_api_vip_port }}/6443/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/ 
+  shell: mv /etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/ && sed -i 's/apiserver.key/apiserver-{{ inventory_hostname }}\.key/' /etc/kubernetes/kube-apiserver.yaml &&  sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/kube-apiserver.yaml && sed -i 's/{{ k8s_api_vip_port }}/6443/' /etc/kubernetes/kube-apiserver.yaml && sed -i 's/{{ k8s_api_vip }}/{{ ansible_default_ipv4.address }}/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/ 
   when:  inventory_hostname in groups["commander"]
   tags: createpki-test
 
@@ -177,7 +177,7 @@
   tags: nginx
 
 - name: start nginx
-  service: name=nginx state=restarted
+  service: name=nginx state=restarted enabled=yes
   when:  inventory_hostname in groups["master"]
   tags: nginx
 
@@ -237,7 +237,7 @@
   tags: ka
 
 - name: start keepalived
-  service: name=keepalived state=restarted
+  service: name=keepalived state=restarted enabled=yes
   when:  inventory_hostname in groups["master"]
   tags: ka
 

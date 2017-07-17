@@ -26,6 +26,7 @@ dashboard_docker_url: "4admin2root/kubernetes-dashboard-amd64:v1.6.1"
 elasticsearch_docker_url: "4admin2root/elasticsearch:v2.4.1-2"
 fluentd_elasticsearch_docker_url: "4admin2root/fluentd-elasticsearch:1.23"
 kibana_docker_url: "4admin2root/kibana:v4.6.1-1"
+efk: enable
 #kubectl proxy
 kubectl_proxy: enable
 #k8s_cluster
@@ -36,3 +37,5 @@ ka_email_to: "ops@synjones.net"
 ka_email_from: "alert@synjones.net"
 ka_smtp_server: "10.9.5.70"
 ka_interface: "eth0"
+# ingress
+traefik: enable
