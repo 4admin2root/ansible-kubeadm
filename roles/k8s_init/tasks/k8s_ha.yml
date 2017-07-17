@@ -122,21 +122,16 @@
   when:  inventory_hostname in groups["slave"]
   tags: createpki
 
-- name: change key files in apiserver.yaml and start apiserver on localhost
-  shell: sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/
+- name: change key files in apiserver.yaml
+  shell: sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/kube-apiserver.yaml 
   when:  inventory_hostname in groups["slave"]
   tags: createpki
 
-#- name: change apiserver in commander
-#  shell: sed -i 's/apiserver.key/apiserver-{{ inventory_hostname }}\.key/' /etc/kubernetes/manifests/kube-apiserver.yaml &&  sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/manifests/kube-apiserver.yaml
-#  when:  inventory_hostname in groups["commander"]
-#  tags: createpki
-#
-#- name: copy admin.conf
-#  shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/admin.conf && cp /etc/kubernetes/admin.conf $HOME && chmod 600 $HOME/admin.conf
-#  when:  inventory_hostname in groups["commander"]
-#  tags: createpi
-##########and kubelet.conf
+- name: change advertise-address in apiserver.yaml and start apiserver on localhost
+  shell: sed -i 's/{{ k8s_api_vip }}/{{ ansible_default_ipv4.address  }}/' /etc/kubernetes/kube-apiserver.yaml && sed -i 's/{{ k8s_api_vip_port }}/6443/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/
+  when:  inventory_hostname in groups["slave"]
+  tags: createpki
+
 - name: check all pods are running
   shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
   register: result
@@ -146,28 +141,47 @@
   when:  inventory_hostname in groups["commander"]
   tags: createpki
 
-# =======
-#- name: change apiserver address in kubelet.yaml
-#  shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/kubelet.conf 
-#  when:  inventory_hostname in groups["slave"]
-#  tags: kubelet
-#
-#- name: restart kubelet
-#  service: name=kubelet state=restarted
-#  when:  inventory_hostname in groups["slave"]
-#  tags: kubelet
-#
-#- name: check all nodes are Ready
-#  shell: source $HOME/.bash_profile && test `kubectl get nodes |grep NotReady | wc -l` -eq 0
-#  register: result
-#  until: result.rc == 0
-#  retries: 50
-#  delay: 10
-#  when:  inventory_hostname in groups["commander"]
-#  tags: kubelet
+- name: change apiserver in commander
+  shell: mv /etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/ && sed -i 's/apiserver.key/apiserver-{{ inventory_hostname }}\.key/' /etc/kubernetes/kube-apiserver.yaml &&  sed -i 's/apiserver.crt/apiserver-{{ inventory_hostname  }}\.crt/' /etc/kubernetes/kube-apiserver.yaml &&sed -i 's/{{ k8s_api_vip_port }}/6443/' /etc/kubernetes/kube-apiserver.yaml && mv /etc/kubernetes/kube-apiserver.yaml /etc/kubernetes/manifests/ 
+  when:  inventory_hostname in groups["commander"]
+  tags: createpki-test
+
+- name: copy admin.conf
+  shell: sed -i 's/server.*{{ k8s_api_vip_port }}/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/admin.conf && cp /etc/kubernetes/admin.conf $HOME && chmod 600 $HOME/admin.conf
+  when:  inventory_hostname in groups["commander"]
+  tags: createpi-test
+
+- name: check all pods are running
+  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
+  register: result
+  until: result.rc == 0
+  retries: 50
+  delay: 10
+  when:  inventory_hostname in groups["commander"]
+  tags: createpki-test
+
 # ======
+- name: install nginx repo
+  template: src=nginx.repo dest=/etc/yum.repos.d/ owner=root mode=650
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
+- name: install nginx pkg
+  yum: name=nginx enablerepo=nginx
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
+- name: copy nginx.conf
+  template: src=nginx.conf dest=/etc/nginx/ owner=root mode=644
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
+- name: start nginx
+  service: name=nginx state=restarted
+  when:  inventory_hostname in groups["master"]
+  tags: nginx
+
 - name: change apiserver address in scheduler.conf
-  #shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/scheduler.conf && mv /etc/kubernetes/kube-scheduler.yaml /etc/kubernetes/manifests
   shell: mv /etc/kubernetes/kube-scheduler.yaml /etc/kubernetes/manifests
   when:  inventory_hostname in groups["slave"]
   tags: scheduler
@@ -183,7 +197,6 @@
 
 # ======
 - name: change apiserver address in controller-manager.conf.conf
-  #shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/controller-manager.conf && mv /etc/kubernetes/kube-controller-manager.yaml /etc/kubernetes/manifests
   shell: mv /etc/kubernetes/kube-controller-manager.yaml /etc/kubernetes/manifests
   when:  inventory_hostname in groups["slave"]
   tags: controller-manager
@@ -198,7 +211,6 @@
   tags: controller-manager
 # =======
 - name: copy admin.conf
-  #shell: sed -i 's/server.*6443/server\:\ https\:\/\/{{ inventory_hostname }}:6443/' /etc/kubernetes/admin.conf && cp /etc/kubernetes/admin.conf $HOME && chmod 600 $HOME/admin.conf
   shell: cp /etc/kubernetes/admin.conf $HOME && chmod 600 $HOME/admin.conf
   when:  inventory_hostname in groups["slave"]
   tags: label-master
@@ -219,57 +231,22 @@
   when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
   tags: label-master
 
-- name: install nginx repo
-  template: src=nginx.repo dest=/etc/yum.repos.d/ owner=root mode=650
+- name: config keepalived
+  template: src=keepalived.conf dest=/etc/keepalived/ mode=644
   when:  inventory_hostname in groups["master"]
-  tags: nginx
+  tags: ka
 
-- name: install nginx pkg
-  yum: name=nginx enablerepo=nginx
+- name: start keepalived
+  service: name=keepalived state=restarted
   when:  inventory_hostname in groups["master"]
-  tags: nginx
+  tags: ka
 
-#- name: copy nginx.conf
-#  template: src=nginx.conf dest=/etc/nginx/ owner=root mode=644
-#  when:  inventory_hostname in groups["master"]
-#  tags: nginx
-#
-#- name: start nginx
-#  service: name=nginx state=restarted
-#  when:  inventory_hostname in groups["master"]
-#  tags: nginx
-#
-#- name: config keepalived
-#  template: src=keepalived.conf dest=/etc/keepalived/ mode=644
-#  when:  inventory_hostname in groups["master"]
-#  tags: ka
-#
-#- name: start keepalived
-#  service: name=keepalived state=restarted
-#  when:  inventory_hostname in groups["master"]
-#  tags: ka
-#
-##update hosts file (kubernetes.default)
-#- name: add record to hosts
-#  shell: echo "{{ hostvars[groups['commander'][0]]['k8s_api_vip'] }}   kubernetes.default.svc " >> /etc/hosts
-#  tags: hosts
-#
-#- name: change apiserver address in kubelet.yaml
-#  shell: sed -i "s/server.*6443/server\:\ https\:\/\/kubernetes.default.svc:{{ hostvars[groups['commander'][0]]['k8s_api_vip_port'] }}/" /etc/kubernetes/kubelet.conf
-#  when:  inventory_hostname in groups["node"]
-#  tags: hosts
-#
-#- name: restart kubelet
-#  service: name=kubelet state=restarted
-#  when:  inventory_hostname in groups["node"]
-#  tags: hosts
-#
-##kubectl get configmap/kube-proxy -n kube-system -o yam   and edit
-#- name: copy kube-proxy.configmap
-#  template: src=kube-proxy.configmap dest={{ k8s_temp_dir }}
-#  when:  inventory_hostname in groups["commander"]
-#  tags: kube-proxy
-#
+#update hosts file (kubernetes.default)
+- name: add record to hosts
+  shell: echo "{{ hostvars[groups['commander'][0]]['k8s_api_vip'] }}   kubernetes.default.svc " >> /etc/hosts
+  tags: hosts
+
+
 #- name: apply kube-proxy.configmap
 #  shell: source $HOME/.bash_profile && kubectl apply -f {{ k8s_temp_dir }}/kube-proxy.configmap
 #  when:  inventory_hostname in groups["commander"]
@@ -280,19 +257,9 @@
 #  when:  inventory_hostname in groups["commander"]
 #  tags: kube-proxy
 #
-#- name: check all pods are running
-#  shell: source $HOME/.bash_profile && test `kubectl get pods -n kube-system |grep -v Running |wc -l` -eq 1
-#  register: result
-#  until: result.rc == 0
-#  retries: 60
-#  delay: 20
-#  when:  inventory_hostname in groups["commander"]
-#  tags: kube-proxy
 #
-#- name: scale kube-dns
-#  shell: source $HOME/.bash_profile && kubectl scale deploy/kube-dns  --replicas=3 -n kube-system
-#  when:  inventory_hostname in groups["commander"]
+- name: scale kube-dns
+  shell: source $HOME/.bash_profile && kubectl scale deploy/kube-dns  --replicas=3 -n kube-system
+  when:  inventory_hostname in groups["commander"]
 
 #######
-#kube-apiserver.yaml(--advertise-address=10.9.5.64)
-#svc kube-dns and kubernetes-dashboard with apiserver ip : 10.96.0.1
