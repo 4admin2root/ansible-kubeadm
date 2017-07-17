@@ -1,1 +1,1 @@
-subjectAltName = DNS:{{ inventory_hostname }},DNS:{{ ansible_nodename }},DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, IP:10.96.0.1,IP:{{ k8s_api_vip }}
+subjectAltName = DNS:{{ inventory_hostname }},DNS:{{ ansible_nodename }},DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, IP:10.96.0.1,IP:{{ k8s_api_vip }},IP:{{ ansible_eth0.ipv4.address }}
