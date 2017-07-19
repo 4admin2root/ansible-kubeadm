@@ -39,3 +39,8 @@ ka_smtp_server: "10.9.5.70"
 ka_interface: "eth0"
 # ingress
 traefik: enable
+# glusterfs
+glusterfs: true
+glusterfs_version: 310
+heketi_version: 4.0.0
+heketi_key: heketi_secret

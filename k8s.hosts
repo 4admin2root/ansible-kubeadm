@@ -15,6 +15,10 @@ k8sprod4 etcd_name=k8s_etcd3 etcd_port=2369 etcd_initial_cluster_port=2370
 k8sprod5 etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
 # the hostname must be queried by dns server
 
+[glusterfs]
+k8sprod6 glusterfs_dev=/dev/vdb glusterfs_vip=10.9.5.243
+k8sprod5 glusterfs_dev=/dev/vdb
+k8sprod4 glusterfs_dev=/dev/vdb
 
 [master:children]
 slave
@@ -24,3 +28,4 @@ commander
 node
 master
 etcd
+

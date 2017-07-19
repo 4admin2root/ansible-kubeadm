@@ -6,3 +6,6 @@
 - hosts: k8s
   roles:
        - { role: k8s_init, when: "ansible_distribution == 'CentOS'  and ansible_distribution_major_version == '7'" }
+- hosts: glusterfs
+  roles:
+       - { role: glusterfs, when: " glusterfs == true and ansible_distribution == 'CentOS'  and ansible_distribution_major_version == '7'" }
