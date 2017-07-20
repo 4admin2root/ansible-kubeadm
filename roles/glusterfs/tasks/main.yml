@@ -44,10 +44,13 @@
 - name: template topology.json
   template: src=topology.json dest=/etc/heketi/
 
-- name: create glusterfs
-  shell: heketi-cli --server http://localhost:8080 --user admin --secret {{ heketi_key }} topology load --json=/etc/heketi/topology.json
+- name: create glusterfs topology
+  shell: heketi-cli --server http://localhost:{{ heketi_port }} --user admin --secret {{ heketi_key }} topology load --json=/etc/heketi/topology.json
   when: glusterfs_vip is defined
 
+#- name: create glusterfs volume
+#  shell: heketi-cli --server http://localhost:{{ heketi_port }} --user admin --secret {{ heketi_key }} volume create --size={{ heketi_vol_size }} --replica={{ heketi_replica_size }}
+#  when: glusterfs_vip is defined
 # todo:
 # k8s:dpv
 #- name: test

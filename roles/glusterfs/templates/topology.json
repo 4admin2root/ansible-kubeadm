@@ -13,12 +13,13 @@
                                 "{{ hostvars[host]['ansible_default_ipv4']['address']  }}"
                             ]
                         },
-                        "zone": 1
+                        "zone": {{ hostvars[host]['heketi_zone']  }}
                     },
                     "devices": [
-                        "{{ hostvars[host]['glusterfs_dev'] }}"
-                    ]
-		{% if loop.last %}
+{% for dev in hostvars[host]['glusterfs_devs'] %}
+                     "{{ dev }}"{% if loop.last %}{% else %}, {% endif %}
+                        {% endfor %} ]
+             {% if loop.last %}
                 }
 		{% else %}
 		},

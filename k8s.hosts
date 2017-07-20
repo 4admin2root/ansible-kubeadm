@@ -16,9 +16,15 @@ k8sprod5 etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
 # the hostname must be queried by dns server
 
 [glusterfs]
-k8sprod6 glusterfs_dev=/dev/vdb glusterfs_vip=10.9.5.243
-k8sprod5 glusterfs_dev=/dev/vdb
-k8sprod4 glusterfs_dev=/dev/vdb
+k8sprod6 heketi_zone=1 glusterfs_vip=10.9.5.243
+k8sprod5 heketi_zone=1
+k8sprod4 heketi_zone=2
+k8sprod3 heketi_zone=2
+[glusterfs:vars]
+#glusterfs_dev=/dev/vdb
+#please go to group_vars/glusterfs.yml to change glusterfs devices
+heketi_vol_size=8
+heketi_replica_size=2
 
 [master:children]
 slave
@@ -28,4 +34,5 @@ commander
 node
 master
 etcd
-
+# todo: docker  direct_lvm
+# --storage-opt dm.thinpooldev
