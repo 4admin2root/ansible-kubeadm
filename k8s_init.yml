@@ -1,8 +1,13 @@
 ##ansible-playbook -i k8s.hosts -s k8s_init.yml
 ---
+- hosts: docker
+  roles:
+       - { role: docker_init, when: "ansible_distribution == 'CentOS'  and ansible_distribution_major_version == '7'" }
+
 - hosts: etcd
   roles:
        - { role: etcd_cluster, when: " k8s_cluster == true and ansible_distribution == 'CentOS'  and ansible_distribution_major_version == '7'" }
+
 - hosts: k8s
   roles:
        - { role: k8s_init, when: "ansible_distribution == 'CentOS'  and ansible_distribution_major_version == '7'" }

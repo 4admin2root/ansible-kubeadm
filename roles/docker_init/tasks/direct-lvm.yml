@@ -3,10 +3,16 @@
   service: name=docker state=stopped
 
 - name: create vg
-  shell: pvcreate {{ docker_thinpooldev }} && vgcreate docker {{ docker_thinpooldev }} 
+  #shell: pvcreate {{ docker_thinpooldev }} && vgcreate docker {{ docker_thinpooldev }} 
+  lvg: vg=docker pvs={{ docker_thinpooldev }}
 
-- name: create lv
-  shell: lvcreate --wipesignatures y -n thinpool docker -l 95%VG && lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
+- name: create lv thinpool
+  #shell: lvcreate --wipesignatures y -n thinpool docker -l 95%VG && lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
+  lvol: vg=docker lv=thinpool size=95%VG opts="--wipesignatures y"
+
+- name: create lv thinpoolmeta
+  #shell: lvcreate --wipesignatures y -n thinpool docker -l 95%VG && lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
+  lvol: vg=docker lv=thinpoolmeta size=1%VG opts="--wipesignatures y"
 
 - name: lvconvert
   shell: lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta
@@ -18,4 +24,5 @@
   shell: lvchange --metadataprofile docker-thinpool docker/thinpool && lvs -o+seg_monitor
 
 - name: backup docker files
-  shell: mkdir /var/lib/docker.bk && mv /var/lib/docker/* /var/lib/docker.bk
+  shell: mkdir /var/lib/docker.bk || mv /var/lib/docker/* /var/lib/docker.bk || rm -rf /var/lib/docker/
+  ignore_errors: true

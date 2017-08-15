@@ -13,12 +13,19 @@
 # for example
 for i in {1..6}
 do
-ssh kube$i 'sudo kubeadm reset;sudo docker stop etcd ;sudo docker rm etcd;sudo rm -rf /opt/etcd/;sudo rm -fr /var/lib/etcd;sudo rm -rf /opt/k8s_init'
+ssh k8sprod$i 'sudo kubeadm reset;sudo docker stop etcd ;sudo docker rm etcd;sudo rm -rf /opt/etcd/;sudo rm -fr /var/lib/etcd;sudo rm -rf /opt/k8s_init;sudo service nginx stop;sudo service keepalived stop;sudo ip addr del 10.9.5.243/32 dev eth0'
+done
+
+for i in {1..6}
+do
+ssh k8sprod$i 'sudo yum remove kubectl kubeadm kubelet kubernetes-cni -y'
+done
+
+for i in {1..6}
+do
+ssh k8sprod$i 'sudo systemctl stop docker ; sudo yum remove docker-engine docker-engine-selinux -y; sudo vgremove -f docker ;sudo pvremove /dev/vdb;sudo rm /etc/lvm/profile/docker-thinpool.profile'
 done
 ```
 ## todo:
-# todo: docker  direct_lvm
-# --storage-opt dm.thinpooldev
-apiserver loadbalance
-kube-proxy
 glusterfs
+ceph

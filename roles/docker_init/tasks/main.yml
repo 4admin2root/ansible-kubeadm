@@ -18,8 +18,8 @@
         - device-mapper-persistent-data
         - lvm2
 # start docker
-- name: start docker
-  service: name=docker state=started
+- name: create docker dir
+  file: name=/etc/docker state=directory mode=700
 # add registry-mirrors
 - name: copy daemon.json
   template: src=daemon.json dest=/etc/docker/daemon.json owner=root group=root mode=0640

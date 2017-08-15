@@ -21,7 +21,7 @@ cloud4ourself-k8sprod5.novalocal etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial
 #cloud4ourself-k8sprod4.novalocal heketi_zone=2
 #cloud4ourself-k8sprod3.novalocal heketi_zone=2
 #[glusterfs:vars]
-##glusterfs_dev=/dev/vdb
+##glusterfs_dev=/dev/vdc
 ##please go to group_vars/glusterfs.yml to change glusterfs devices
 #heketi_vol_size=8
 #heketi_replica_size=2
@@ -39,4 +39,8 @@ commander
 [k8s:children]
 node
 master
+etcd
+
+[docker:children]
+k8s
 etcd
