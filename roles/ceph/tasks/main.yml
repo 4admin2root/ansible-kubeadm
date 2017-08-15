@@ -1,0 +1,53 @@
+---
+#########################################################################
+# tested on centos 7
+# 2017-07-20
+# created by : lvzhijun
+########################################################################
+#
+# 
+- name: install ceph-release
+  yum: name=http://download.ceph.com/rpm-{{ ceph_version }}/el7/noarch/ceph-release-1-1.el7.noarch.rpm  state=present
+
+- name: create user ceph
+  user: name=ceph
+
+- name: sudoers
+  shell: echo 'ceph ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && sed -i 's/Defaults requiretty/#Defaults requiretty/' /etc/sudoers
+
+- name: ssh-keygen
+  local_action: shell echo -e  'y\n' | ssh-keygen -C 'from_ansible-kubeadm' -t rsa -f /tmp/id_rsa -N '' && chmod 644 /tmp/id_rsa
+  when: inventory_hostname == groups['ceph'][0]
+
+- name: mkdir .ssh
+  file: path=/home/ceph/.ssh owner=ceph group=ceph mode=700 state=directory
+
+- name: copy key files
+  copy: src=/tmp/{{ item }} dest=/home/ceph/.ssh mode=600 owner=ceph
+  with_items: 
+       - id_rsa
+       - id_rsa.pub
+
+- name: rm ssh-keygen
+  local_action: shell rm  /tmp/id_rsa  /tmp/id_rsa.pub
+  when: inventory_hostname == groups['ceph'][0]
+
+- name: enable ssh authorized_keys
+  shell: cat /home/ceph/.ssh/id_rsa.pub >> /home/ceph/.ssh/authorized_keys && chmod 600 /home/ceph/.ssh/authorized_keys && chown ceph:ceph /home/ceph/.ssh/authorized_keys
+
+- name: install ceph-deploy
+  yum: name=ceph-deploy 
+  when: inventory_hostname == groups['ceph'][0]
+  tags: ceph-deploy
+
+- name: mkdir k8s
+  file: path=/home/ceph/k8s owner=ceph group=ceph mode=755 state=directory
+  when: inventory_hostname == groups['ceph'][0]
+  tags: ceph-deploy
+
+- name: ceph-deploy new
+  shell: cd $HOME/k8s; ceph-deploy new {{ inventory_hostname }} 
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['ceph'][0]
+  tags: ceph-deploy

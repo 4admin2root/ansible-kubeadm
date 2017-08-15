@@ -12,7 +12,11 @@
   copy: src=docker.repo dest=/etc/yum.repos.d/docker.repo owner=root group=root mode=0640
 # install docker engine
 - name: install docker engine
-  yum: name=docker-engine-{{ docker_version }} state=present
+  yum: name={{ item }} state=present
+  with_items:
+        - docker-engine-{{ docker_version }}
+        - device-mapper-persistent-data
+        - lvm2
 # start docker
 - name: start docker
   service: name=docker state=started
@@ -22,3 +26,5 @@
 
 - name: restart docker again
   service: name=docker state=started
+#docker_direct-lvm: true
+#docker_thinpooldev: /dev/vdb

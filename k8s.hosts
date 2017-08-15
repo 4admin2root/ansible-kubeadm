@@ -1,30 +1,36 @@
 [node]
-k8sprod1
-k8sprod2
-k8sprod3
+cloud4ourself-k8sprod1.novalocal
+cloud4ourself-k8sprod2.novalocal
+cloud4ourself-k8sprod3.novalocal
 
 [slave]
-k8sprod5 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=80
-k8sprod4 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=50
+cloud4ourself-k8sprod5.novalocal k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=80
+cloud4ourself-k8sprod4.novalocal k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=50
 [commander]
-k8sprod6 k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=90
+cloud4ourself-k8sprod6.novalocal k8s_api_vip=10.9.5.243 k8s_api_vip_port=8443 ka_priority=90
 
 [etcd]
-k8sprod6 etcd_name=k8s_etcd2 etcd_port=2369 etcd_initial_cluster_port=2370
-k8sprod4 etcd_name=k8s_etcd3 etcd_port=2369 etcd_initial_cluster_port=2370
-k8sprod5 etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
+cloud4ourself-k8sprod6.novalocal etcd_name=k8s_etcd2 etcd_port=2369 etcd_initial_cluster_port=2370
+cloud4ourself-k8sprod4.novalocal etcd_name=k8s_etcd3 etcd_port=2369 etcd_initial_cluster_port=2370
+cloud4ourself-k8sprod5.novalocal etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
 # the hostname must be queried by dns server
 
-[glusterfs]
-k8sprod6 heketi_zone=1 glusterfs_vip=10.9.5.243
-k8sprod5 heketi_zone=1
-k8sprod4 heketi_zone=2
-k8sprod3 heketi_zone=2
-[glusterfs:vars]
-#glusterfs_dev=/dev/vdb
-#please go to group_vars/glusterfs.yml to change glusterfs devices
-heketi_vol_size=8
-heketi_replica_size=2
+#[glusterfs]
+#cloud4ourself-k8sprod6.novalocal heketi_zone=1 glusterfs_vip=10.9.5.243
+#cloud4ourself-k8sprod5.novalocal heketi_zone=1
+#cloud4ourself-k8sprod4.novalocal heketi_zone=2
+#cloud4ourself-k8sprod3.novalocal heketi_zone=2
+#[glusterfs:vars]
+##glusterfs_dev=/dev/vdb
+##please go to group_vars/glusterfs.yml to change glusterfs devices
+#heketi_vol_size=8
+#heketi_replica_size=2
+#
+#[ceph]
+#cloud4ourself-k8sprod1.novalocal
+#cloud4ourself-k8sprod2.novalocal
+#cloud4ourself-k8sprod3.novalocal
+##the hostname must be queried by dns server
 
 [master:children]
 slave
@@ -34,5 +40,3 @@ commander
 node
 master
 etcd
-# todo: docker  direct_lvm
-# --storage-opt dm.thinpooldev

@@ -17,6 +17,8 @@ ssh kube$i 'sudo kubeadm reset;sudo docker stop etcd ;sudo docker rm etcd;sudo r
 done
 ```
 ## todo:
+# todo: docker  direct_lvm
+# --storage-opt dm.thinpooldev
 apiserver loadbalance
 kube-proxy
 glusterfs

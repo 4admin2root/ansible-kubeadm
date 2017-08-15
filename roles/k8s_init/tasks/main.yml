@@ -35,7 +35,10 @@
      name: kubelet
       
 - name: sysctl 
-  sysctl: name="net.bridge.bridge-nf-call-iptables" value=1 sysctl_set=yes state=present reload=yes
+  sysctl: name={{ item }} value=1 sysctl_set=yes state=present reload=yes
+  with_items:
+       - net.bridge.bridge-nf-call-iptables
+       - net.bridge.bridge-nf-call-ip6tables
 
 - name: enable services
   service: name={{ item }} state=started enabled=yes
@@ -152,7 +155,7 @@
        - dashboard
 
 - name: kubectl proxy
-  shell: source $HOME/.bash_profile && nohup kubectl proxy --address={{ ansible_nodename }} --accept-hosts='.*' &
+  shell: source $HOME/.bash_profile && nohup kubectl proxy --address={{ inventory_hostname }} --accept-hosts='.*' &
   when:  inventory_hostname in groups["commander"] and kubectl_proxy == 'enable'
 
 - name: copy efk yaml

@@ -222,12 +222,12 @@
 
 #k8s_master_scheduled: true
 - name: label node noschedule
-  shell: source $HOME/.bash_profile && kubectl label node {{ ansible_nodename }} node-role.kubernetes.io/master=
+  shell: source $HOME/.bash_profile && kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/master=
   when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
   tags: label-master
 
 - name: taint node
-  shell: source $HOME/.bash_profile && kubectl taint node {{ ansible_nodename }} node-role.kubernetes.io/master=:NoSchedule
+  shell: source $HOME/.bash_profile && kubectl taint node {{ inventory_hostname }} node-role.kubernetes.io/master=:NoSchedule
   when:  inventory_hostname in groups["slave"] and k8s_master_scheduled != true
   tags: label-master
 
