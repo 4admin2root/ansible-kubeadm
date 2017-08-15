@@ -29,3 +29,5 @@ done
 ## todo:
 glusterfs
 ceph
+why simplehttpserver not work sometimes
+loadbalance
