@@ -1,0 +1,9 @@
+{
+    "registry-mirrors": ["https://m1empwb1.mirror.aliyuncs.com"] {% if docker_direct_lvm == true %} ,
+    "storage-driver": "devicemapper",
+    "storage-opts": [
+    "dm.thinpooldev=/dev/mapper/docker-thinpool",
+    "dm.use_deferred_removal=true",
+    "dm.use_deferred_deletion=true"
+    ] {% endif %}
+}

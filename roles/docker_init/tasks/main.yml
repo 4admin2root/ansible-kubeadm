@@ -22,7 +22,10 @@
   service: name=docker state=started
 # add registry-mirrors
 - name: copy daemon.json
-  copy: src=daemon.json dest=/etc/docker/daemon.json owner=root group=root mode=0640
+  template: src=daemon.json dest=/etc/docker/daemon.json owner=root group=root mode=0640
+
+- include: direct-lvm.yml
+  when: docker_direct_lvm == true
 
 - name: restart docker again
   service: name=docker state=started

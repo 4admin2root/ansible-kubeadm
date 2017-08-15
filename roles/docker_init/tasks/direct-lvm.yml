@@ -1,0 +1,21 @@
+---
+- name: stop docker
+  service: name=docker state=stopped
+
+- name: create vg
+  shell: pvcreate {{ docker_thinpooldev }} && vgcreate docker {{ docker_thinpooldev }} 
+
+- name: create lv
+  shell: lvcreate --wipesignatures y -n thinpool docker -l 95%VG && lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
+
+- name: lvconvert
+  shell: lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta
+
+- name: copy docker-thinpool.profile
+  template: src=docker-thinpool.profile dest=/etc/lvm/profile/ mode=644
+
+- name: lvchange and lvs 
+  shell: lvchange --metadataprofile docker-thinpool docker/thinpool && lvs -o+seg_monitor
+
+- name: backup docker files
+  shell: mkdir /var/lib/docker.bk && mv /var/lib/docker/* /var/lib/docker.bk
