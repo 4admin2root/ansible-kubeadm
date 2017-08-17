@@ -24,8 +24,8 @@ cloud4ourself-k8sprod3.novalocal heketi_zone=2
 [glusterfs:vars]
 #please go to group_vars/glusterfs.yml to change glusterfs devices
 #defualt device is /dev/vdc
-heketi_vol_size=20
-heketi_replica_size=2
+#heketi_vol_size=20
+#heketi_replica_size=2
 
 #[ceph]
 #cloud4ourself-k8sprod1.novalocal

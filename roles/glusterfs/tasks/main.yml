@@ -82,6 +82,7 @@
 #  when: glusterfs_vip is defined
 # todo:
 # k8s:dpv
+# rsync /var/lib/heketi
 #- name: test
 #  shell: echo {{ vars['ansible_' + ka_interface]['ipv4']['address'] }}
 #  tags: test
