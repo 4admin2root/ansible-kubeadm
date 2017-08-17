@@ -21,6 +21,8 @@ cloud4ourself-k8sprod6.novalocal heketi_zone=1 glusterfs_vip=10.9.5.243
 cloud4ourself-k8sprod5.novalocal heketi_zone=1
 cloud4ourself-k8sprod4.novalocal heketi_zone=2
 cloud4ourself-k8sprod3.novalocal heketi_zone=2
+cloud4ourself-k8sprod2.novalocal
+cloud4ourself-k8sprod1.novalocal
 [glusterfs:vars]
 #please go to group_vars/glusterfs.yml to change glusterfs devices
 #defualt device is /dev/vdc

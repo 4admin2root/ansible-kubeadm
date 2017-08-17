@@ -2,6 +2,8 @@
 完全使用国内网络
 # reference
  http://tonybai.com/2017/05/15/setup-a-ha-kubernetes-cluster-based-on-kubeadm-part2/
+## get ready
+   please to check disk devices for docker direct-lvm(default: /dev/vdb) and glusterfs(default: /dev/vdc)
 ## edit config files
  k8s.hosts and group_vars/k8s.yml
 ## run
@@ -37,7 +39,6 @@ done
 # please check vgdisplay and vgremove -f in manual
 ```
 ## todo:
-glusterfs
 ceph
 why simplehttpserver not work sometimes
 loadbalance

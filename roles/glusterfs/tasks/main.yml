@@ -9,44 +9,58 @@
 - name: install glusterfs-release
   yum: name=centos-release-gluster{{ glusterfs_version }}  state=present
 
+- name: install glusterfs-release
+  yum: name=glusterfs-fuse  state=present
+
 - name: install glusterfs-server
   yum: name=glusterfs-server,heketi-{{ heketi_version }},heketi-client-{{ heketi_version }} state=present
+  when: heketi_zone is defined
 
 - name: enable glusterd
   service: name=glusterd state=started enabled=yes
+  when: heketi_zone is defined
 
 - name: ssh-keygen
   local_action: shell echo -e  'y\n' | ssh-keygen -C 'from_ansible-kubeadm' -t rsa -f /tmp/heketi_key -N '' && chmod 644 /tmp/heketi_key
   when: inventory_hostname == groups['glusterfs'][0]
+  when: heketi_zone is defined
 
 - name: copy key files
   copy: src=/tmp/{{ item }} dest=/etc/heketi/ mode=600 owner=heketi
   with_items: 
        - heketi_key
        - heketi_key.pub
+  when: heketi_zone is defined
 
 - name: rm ssh-keygen
   local_action: shell rm  /tmp/heketi_key  /tmp/heketi_key.pub
   when: inventory_hostname == groups['glusterfs'][0]
+  when: heketi_zone is defined
 
 - name: enable ssh authorized_keys
   shell:  test -d $HOME/.ssh || mkdir -m 700 $HOME/.ssh
+  when: heketi_zone is defined
 
 - name: enable ssh authorized_keys
   shell: cat /etc/heketi/heketi_key.pub >> $HOME/.ssh/authorized_keys && chmod 600 $HOME/.ssh/authorized_keys
+  when: heketi_zone is defined
 
 - name: backup heketi database
   shell: cp -r /var/lib/heketi /var/lib/heketi.`date +%s` || rm -rf /var/lib/heketi/
   ignore_errors: yes
+  when: heketi_zone is defined
 
 - name: template heketi.json
   template: src=heketi.json dest=/etc/heketi/heketi.json 
+  when: heketi_zone is defined
 
 - name: start heketi
   service: name=heketi state=restarted
+  when: heketi_zone is defined
 
 - name: template topology.json
   template: src=topology.json dest=/etc/heketi/
+  when: heketi_zone is defined
 
 - name: create glusterfs topology
   shell: heketi-cli --server http://localhost:{{ heketi_port }} --user admin --secret {{ heketi_key }} topology load --json=/etc/heketi/topology.json
