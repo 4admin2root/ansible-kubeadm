@@ -53,7 +53,7 @@
   tags: test
 
 - name:  make python simplehttpserver for get pki files
-  shell: cd /etc/kubernetes/ && screen -d -m python -m SimpleHTTPServer 18888 
+  shell: cd /etc/kubernetes/ && screen -L -d -m python -m SimpleHTTPServer 18888 
   when:  inventory_hostname in groups["commander"]
   tags: testapi
 

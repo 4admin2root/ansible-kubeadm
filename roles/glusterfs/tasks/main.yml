@@ -35,6 +35,10 @@
 - name: enable ssh authorized_keys
   shell: cat /etc/heketi/heketi_key.pub >> $HOME/.ssh/authorized_keys && chmod 600 $HOME/.ssh/authorized_keys
 
+- name: backup heketi database
+  shell: cp -r /var/lib/heketi /var/lib/heketi.`date +%s` || rm -rf /var/lib/heketi/
+  ignore_errors: yes
+
 - name: template heketi.json
   template: src=heketi.json dest=/etc/heketi/heketi.json 
 
@@ -48,6 +52,31 @@
   shell: heketi-cli --server http://localhost:{{ heketi_port }} --user admin --secret {{ heketi_key }} topology load --json=/etc/heketi/topology.json
   when: glusterfs_vip is defined
 
+- name: get glusterfs clusterid
+  shell: heketi-cli --server http://localhost:{{ heketi_port }} --user admin --secret {{ heketi_key }} cluster list |sed -n '2p'
+  register: clusterid_result
+  when: glusterfs_vip is defined
+  tags:
+     - test
+
+- name: get glusterfs heketi_key_base64
+  shell: echo -n "{{ heketi_key }}" | base64
+  register: heketi_key_base64_result
+  when: glusterfs_vip is defined
+  tags:
+     - test
+
+- name: template glusterfs-sc.yaml
+  template: src=glusterfs-sc.yaml dest=/etc/heketi/
+  when: glusterfs_vip is defined
+  tags:
+     - test
+
+- name: create StorageClass in k8s
+  shell: source $HOME/.bash_profile && kubectl apply -f /etc/heketi/glusterfs-sc.yaml
+  when: glusterfs_vip is defined
+  tags:
+     - test
 #- name: create glusterfs volume
 #  shell: heketi-cli --server http://localhost:{{ heketi_port }} --user admin --secret {{ heketi_key }} volume create --size={{ heketi_vol_size }} --replica={{ heketi_replica_size }}
 #  when: glusterfs_vip is defined

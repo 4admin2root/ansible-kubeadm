@@ -1,3 +1,4 @@
+# important: please to check file group_vars/all,make sure to use docker_direct_lvm or not
 [node]
 cloud4ourself-k8sprod1.novalocal
 cloud4ourself-k8sprod2.novalocal
@@ -15,17 +16,17 @@ cloud4ourself-k8sprod4.novalocal etcd_name=k8s_etcd3 etcd_port=2369 etcd_initial
 cloud4ourself-k8sprod5.novalocal etcd_name=k8s_etcd1 etcd_port=2369 etcd_initial_cluster_port=2370
 # the hostname must be queried by dns server
 
-#[glusterfs]
-#cloud4ourself-k8sprod6.novalocal heketi_zone=1 glusterfs_vip=10.9.5.243
-#cloud4ourself-k8sprod5.novalocal heketi_zone=1
-#cloud4ourself-k8sprod4.novalocal heketi_zone=2
-#cloud4ourself-k8sprod3.novalocal heketi_zone=2
-#[glusterfs:vars]
-##glusterfs_dev=/dev/vdc
-##please go to group_vars/glusterfs.yml to change glusterfs devices
-#heketi_vol_size=8
-#heketi_replica_size=2
-#
+[glusterfs]
+cloud4ourself-k8sprod6.novalocal heketi_zone=1 glusterfs_vip=10.9.5.243
+cloud4ourself-k8sprod5.novalocal heketi_zone=1
+cloud4ourself-k8sprod4.novalocal heketi_zone=2
+cloud4ourself-k8sprod3.novalocal heketi_zone=2
+[glusterfs:vars]
+#please go to group_vars/glusterfs.yml to change glusterfs devices
+#defualt device is /dev/vdc
+heketi_vol_size=20
+heketi_replica_size=2
+
 #[ceph]
 #cloud4ourself-k8sprod1.novalocal
 #cloud4ourself-k8sprod2.novalocal
