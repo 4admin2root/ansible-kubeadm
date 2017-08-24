@@ -7,7 +7,7 @@
 ## edit config files
  k8s.hosts and group_vars/k8s.yml
 ## run
- ansible-playbook -i k8s.hosts -s k8s_init.yml
+ ansible-playbook -i k8s.hosts -s k8s_init.yml  
  please use a normal user to get ssh connection and the user with sudo privilege
 ## rerun
  before you run the playbook, please run the script as follow
@@ -39,6 +39,7 @@ done
 # please check vgdisplay and vgremove -f in manual
 ```
 ## todo:
-ceph
-why simplehttpserver not work sometimes
-loadbalance
+sync heketi.db  
+test : ceph   
+why simplehttpserver not work sometimes  
+create loadbalance at front-end  
