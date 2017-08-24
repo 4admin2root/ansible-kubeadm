@@ -6,18 +6,32 @@
 ########################################################################
 #
 # 
+- name: template ceph-repo
+  template: src=ceph.repo dest=/etc/yum.repos.d/
+  tags:
+      - test
+
 - name: install ceph-release
-  yum: name=http://download.ceph.com/rpm-{{ ceph_version }}/el7/noarch/ceph-release-1-1.el7.noarch.rpm  state=present
+  yum: name={{ item }}  state=present
+  with_items: 
+        - yum-plugin-priorities
+        - ceph-deploy
+  tags:
+      - test
 
 - name: create user ceph
   user: name=ceph
+  tags:
+      - test
 
 - name: sudoers
   shell: echo 'ceph ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && sed -i 's/Defaults requiretty/#Defaults requiretty/' /etc/sudoers
+  tags:
+      - test
 
 - name: ssh-keygen
   local_action: shell echo -e  'y\n' | ssh-keygen -C 'from_ansible-kubeadm' -t rsa -f /tmp/id_rsa -N '' && chmod 644 /tmp/id_rsa
-  when: inventory_hostname == groups['ceph'][0]
+  when: inventory_hostname == groups['mon'][0]
 
 - name: mkdir .ssh
   file: path=/home/ceph/.ssh owner=ceph group=ceph mode=700 state=directory
@@ -28,26 +42,57 @@
        - id_rsa
        - id_rsa.pub
 
+- name: ssh config
+  shell: cd /home/ceph/.ssh && echo "StrictHostKeyChecking no" >> config && chown ceph:ceph config && chmod 600 config
+
 - name: rm ssh-keygen
   local_action: shell rm  /tmp/id_rsa  /tmp/id_rsa.pub
-  when: inventory_hostname == groups['ceph'][0]
+  when: inventory_hostname == groups['mon'][0]
 
 - name: enable ssh authorized_keys
   shell: cat /home/ceph/.ssh/id_rsa.pub >> /home/ceph/.ssh/authorized_keys && chmod 600 /home/ceph/.ssh/authorized_keys && chown ceph:ceph /home/ceph/.ssh/authorized_keys
 
-- name: install ceph-deploy
-  yum: name=ceph-deploy 
-  when: inventory_hostname == groups['ceph'][0]
-  tags: ceph-deploy
-
 - name: mkdir k8s
   file: path=/home/ceph/k8s owner=ceph group=ceph mode=755 state=directory
-  when: inventory_hostname == groups['ceph'][0]
+  when: inventory_hostname == groups['mon'][0]
   tags: ceph-deploy
 
 - name: ceph-deploy new
-  shell: cd $HOME/k8s; ceph-deploy new {{ inventory_hostname }} 
+  shell: cd $HOME/k8s; ceph-deploy new {{ groups['mon']|join(' ') }} 
   become: true
   become_user: ceph
-  when: inventory_hostname == groups['ceph'][0]
-  tags: ceph-deploy
+  when: inventory_hostname == groups['mon'][0]
+
+- name: ceph-deploy install
+  shell: cd $HOME/k8s; ceph-deploy install {{ groups['mon']|join(' ') }} 
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+
+- name: ceph-deploy mon
+  shell: cd $HOME/k8s; ceph-deploy mon create-initial
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+
+# ceph-deploy disk zap
+- name: ceph-deploy osd prepare
+  shell: cd $HOME/k8s; ceph-deploy disk zap {{  groups['osd'][0]  }}:{{ hostvars[groups['osd'][0]].disk }} {{  groups['osd'][1]  }}:{{ hostvars[groups['osd'][1]].disk }} {{  groups['osd'][2]  }}:{{ hostvars[groups['osd'][2]].disk }}
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: ceph-test
+
+- name: ceph-deploy osd prepare
+  shell: cd $HOME/k8s; ceph-deploy osd prepare {{  groups['osd'][0]  }}:{{ hostvars[groups['osd'][0]].disk }} {{  groups['osd'][1]  }}:{{ hostvars[groups['osd'][1]].disk }} {{  groups['osd'][2]  }}:{{ hostvars[groups['osd'][2]].disk }}
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: ceph-test
+
+- name: ceph-deploy osd activate
+  shell: cd $HOME/k8s; ceph-deploy osd activate {{  groups['osd'][0]  }}:{{ hostvars[groups['osd'][0]].disk }}1 {{  groups['osd'][1]  }}:{{ hostvars[groups['osd'][1]].disk }}1 {{  groups['osd'][2]  }}:{{ hostvars[groups['osd'][2]].disk }}1
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: ceph-test

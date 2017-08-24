@@ -29,11 +29,15 @@ cloud4ourself-k8sprod1.novalocal
 #heketi_vol_size=20
 #heketi_replica_size=2
 
-#[ceph]
-#cloud4ourself-k8sprod1.novalocal
-#cloud4ourself-k8sprod2.novalocal
-#cloud4ourself-k8sprod3.novalocal
-##the hostname must be queried by dns server
+[mon]
+cloud4ourself-c3.novalocal
+cloud4ourself-c2.novalocal
+cloud4ourself-c1.novalocal
+[osd]
+cloud4ourself-c3.novalocal disk=vdb
+cloud4ourself-c2.novalocal disk=vdb
+cloud4ourself-c1.novalocal disk=vdb
+#the hostname must be queried by dns server or hosts file
 
 [master:children]
 slave
@@ -47,3 +51,7 @@ etcd
 [docker:children]
 k8s
 etcd
+
+[ceph:children]
+mon
+osd
