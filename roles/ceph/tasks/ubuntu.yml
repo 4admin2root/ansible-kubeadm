@@ -1,0 +1,114 @@
+---
+#########################################################################
+# tested on ubuntu 14
+# 2017-08-26
+# created by : lvzhijun
+########################################################################
+#
+# 
+- name: template sourceslist
+  template: src=sources.list dest=/etc/apt/ backup=yes
+- name: apt-key
+  shell: wget -q -O- 'https://mirrors.aliyun.com/ceph/keys/release.asc' | apt-key add -
+- name: apt update
+  apt: update_cache=yes allow_unauthenticated=yes
+
+- name: install ceph-release
+  apt: name={{ item }}  state=present allow_unauthenticated=yes
+  with_items: 
+        - ceph-deploy
+
+- name: create user ceph
+  user: name=ceph
+
+- name: sudoers
+  shell: echo 'ceph ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && sed -i 's/Defaults requiretty/#Defaults requiretty/' /etc/sudoers
+
+- name: ssh-keygen
+  local_action: shell echo -e  'y\n' | ssh-keygen -C 'from_ansible-kubeadm' -t rsa -f /tmp/id_rsa -N '' && chmod 644 /tmp/id_rsa
+  when: inventory_hostname == groups['mon'][0]
+
+- name: mkdir .ssh
+  file: path=/home/ceph/.ssh owner=ceph group=ceph mode=700 state=directory
+
+- name: copy key files
+  copy: src=/tmp/{{ item }} dest=/home/ceph/.ssh mode=600 owner=ceph
+  with_items: 
+       - id_rsa
+       - id_rsa.pub
+
+- name: ssh config
+  shell: cd /home/ceph/.ssh && echo "StrictHostKeyChecking no" >> config && chown ceph:ceph config && chmod 600 config
+
+- name: rm ssh-keygen
+  local_action: shell rm  /tmp/id_rsa  /tmp/id_rsa.pub
+  when: inventory_hostname == groups['mon'][0]
+
+- name: enable ssh authorized_keys
+  shell: cat /home/ceph/.ssh/id_rsa.pub >> /home/ceph/.ssh/authorized_keys && chmod 600 /home/ceph/.ssh/authorized_keys && chown ceph:ceph /home/ceph/.ssh/authorized_keys
+
+- name: mkdir k8s
+  file: path=/home/ceph/k8s owner=ceph group=ceph mode=755 state=directory
+  when: inventory_hostname == groups['mon'][0]
+
+- name: ceph-deploy new
+  shell: cd $HOME/k8s; ceph-deploy new {{ groups['mon']|join(' ') }} 
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: test
+
+- name: ceph-deploy install
+  shell: cd $HOME/k8s; ceph-deploy install --repo-url https://mirrors.aliyun.com/ceph/debian-{{ ceph_version }}/ --gpg-url https://mirrors.aliyun.com/ceph/keys/release.asc --nogpgcheck {{ groups['mon']|join(' ') }} 
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: test
+
+- name: ceph-deploy mon
+  shell: cd $HOME/k8s; ceph-deploy mon create-initial
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: test
+
+# ceph-deploy disk zap
+- name: ceph-deploy disk zap
+  shell: cd $HOME/k8s; ceph-deploy disk zap {% for host in groups['osd'] %} {{ host }}:{{ hostvars[host]['disk'] }} {% endfor %}
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+
+- name: ceph-deploy osd prepare
+  shell: cd $HOME/k8s; ceph-deploy osd prepare {% for host in groups['osd'] %} {{ host }}:{{ hostvars[host]['disk'] }} {% endfor %}
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: ceph-test
+#
+#- name: ceph-deploy osd activate
+#  shell: cd $HOME/k8s; ceph-deploy osd activate {% for host in groups['mon'] %} {{ host }}:{{ hostvars[host]['disk'] }}1 {% endfor %}
+#  become: true
+#  become_user: ceph
+#  when: inventory_hostname == groups['mon'][0]
+#  tags: ceph-test
+#
+#- name: ceph-deploy admin
+#  shell: cd $HOME/k8s; ceph-deploy  admin {{ groups['mon']|join(' ') }} 
+#  become: true
+#  become_user: ceph
+#  when: inventory_hostname == groups['mon'][0]
+#  tags: ceph-test
+#
+#- name: chmod
+#  shell: chmod +r /etc/ceph/ceph.client.admin.keyring
+#  when: inventory_hostname == groups['mon'][0]
+#  tags: ceph-test
+#
+
+#systemctl restart ceph-osd.target
+#public network = 10.9.5.0/24
+#cluster network = 10.9.5.0/24
+#ceph osd pool set rbd pg_num 256
+#ceph osd pool set rbd pgp_num 256
+# ceph client for k8s nodes
