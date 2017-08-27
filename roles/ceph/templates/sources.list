@@ -8,5 +8,3 @@ deb-src https://mirrors.aliyun.com/ubuntu/ trusty-security main restricted unive
 deb-src https://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse
 deb-src https://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse
 deb-src https://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse
-
-deb https://mirrors.aliyun.com/ceph/debian-{{ ceph_version }}/ trusty main
