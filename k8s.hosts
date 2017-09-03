@@ -30,13 +30,13 @@ cloud4ourself-k8sprod1.novalocal
 #heketi_replica_size=2
 
 [mon]
-cloud4ourself-flynn1
-cloud4ourself-flynn2
-cloud4ourself-flynn3
+cloud4ourself-kube2.novalocal
+cloud4ourself-kube3.novalocal
+cloud4ourself-kube4.novalocal
 [osd]
-cloud4ourself-flynn1 disk=vdb
-cloud4ourself-flynn2 disk=vdb
-cloud4ourself-flynn3 disk=vdb
+cloud4ourself-kube2.novalocal disk=vdb
+cloud4ourself-kube3.novalocal disk=vdb
+cloud4ourself-kube4.novalocal disk=vdb
 #the hostname must be queried by dns server or hosts file
 
 [master:children]

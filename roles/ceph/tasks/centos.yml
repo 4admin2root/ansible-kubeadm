@@ -16,7 +16,7 @@
         - ceph-deploy
 
 - name: create user ceph
-  user: name=ceph
+  user: name=ceph shell=/bin/bash home=/var/lib/ceph
 
 - name: sudoers
   shell: echo 'ceph ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && sed -i 's/Defaults requiretty/#Defaults requiretty/' /etc/sudoers
@@ -26,26 +26,26 @@
   when: inventory_hostname == groups['mon'][0]
 
 - name: mkdir .ssh
-  file: path=/home/ceph/.ssh owner=ceph group=ceph mode=700 state=directory
+  file: path=/var/lib/ceph/.ssh owner=ceph group=ceph mode=700 state=directory
 
 - name: copy key files
-  copy: src=/tmp/{{ item }} dest=/home/ceph/.ssh mode=600 owner=ceph
+  copy: src=/tmp/{{ item }} dest=/var/lib/ceph/.ssh mode=600 owner=ceph
   with_items: 
        - id_rsa
        - id_rsa.pub
 
 - name: ssh config
-  shell: cd /home/ceph/.ssh && echo "StrictHostKeyChecking no" >> config && chown ceph:ceph config && chmod 600 config
+  shell: cd /var/lib/ceph/.ssh && echo "StrictHostKeyChecking no" >> config && chown ceph:ceph config && chmod 600 config
 
 - name: rm ssh-keygen
   local_action: shell rm  /tmp/id_rsa  /tmp/id_rsa.pub
   when: inventory_hostname == groups['mon'][0]
 
 - name: enable ssh authorized_keys
-  shell: cat /home/ceph/.ssh/id_rsa.pub >> /home/ceph/.ssh/authorized_keys && chmod 600 /home/ceph/.ssh/authorized_keys && chown ceph:ceph /home/ceph/.ssh/authorized_keys
+  shell: cat /var/lib/ceph/.ssh/id_rsa.pub >> /var/lib/ceph/.ssh/authorized_keys && chmod 600 /var/lib/ceph/.ssh/authorized_keys && chown ceph:ceph /var/lib/ceph/.ssh/authorized_keys
 
 - name: mkdir k8s
-  file: path=/home/ceph/k8s owner=ceph group=ceph mode=755 state=directory
+  file: path=/var/lib/ceph/k8s owner=ceph group=ceph mode=755 state=directory
   when: inventory_hostname == groups['mon'][0]
   tags: ceph-deploy
 
@@ -54,6 +54,7 @@
   become: true
   become_user: ceph
   when: inventory_hostname == groups['mon'][0]
+# hostname in ceph.conf is short hostname(hostname -s)
 
 - name: ceph-deploy install
   shell: cd $HOME/k8s; ceph-deploy install {{ groups['mon']|join(' ') }} 
@@ -66,6 +67,7 @@
   become: true
   become_user: ceph
   when: inventory_hostname == groups['mon'][0]
+# bug: hostname in ceph.conf is short hostname(hostname -s)
 
 # ceph-deploy disk zap
 - name: ceph-deploy disk zap
@@ -73,33 +75,29 @@
   become: true
   become_user: ceph
   when: inventory_hostname == groups['mon'][0]
-  tags: ceph-test
 
 - name: ceph-deploy osd prepare
   shell: cd $HOME/k8s; ceph-deploy osd prepare {% for host in groups['osd'] %} {{ host }}:{{ hostvars[host]['disk'] }} {% endfor %}
   become: true
   become_user: ceph
   when: inventory_hostname == groups['mon'][0]
-  tags: ceph-test
 
 - name: ceph-deploy osd activate
   shell: cd $HOME/k8s; ceph-deploy osd activate {% for host in groups['mon'] %} {{ host }}:{{ hostvars[host]['disk'] }}1 {% endfor %}
   become: true
   become_user: ceph
   when: inventory_hostname == groups['mon'][0]
-  tags: ceph-test
 
 - name: ceph-deploy admin
   shell: cd $HOME/k8s; ceph-deploy  admin {{ groups['mon']|join(' ') }} 
   become: true
   become_user: ceph
   when: inventory_hostname == groups['mon'][0]
-  tags: ceph-test
 
 - name: chmod
   shell: chmod +r /etc/ceph/ceph.client.admin.keyring
   when: inventory_hostname == groups['mon'][0]
-  tags: ceph-test
+  tags: hostname
 
 
 #systemctl restart ceph-osd.target
