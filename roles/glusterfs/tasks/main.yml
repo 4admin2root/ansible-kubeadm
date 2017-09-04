@@ -22,8 +22,7 @@
 
 - name: ssh-keygen
   local_action: shell echo -e  'y\n' | ssh-keygen -C 'from_ansible-kubeadm' -t rsa -f /tmp/heketi_key -N '' && chmod 644 /tmp/heketi_key
-  when: inventory_hostname == groups['glusterfs'][0]
-  when: heketi_zone is defined
+  when: inventory_hostname == groups['glusterfs'][0] and heketi_zone is defined
 
 - name: copy key files
   copy: src=/tmp/{{ item }} dest=/etc/heketi/ mode=600 owner=heketi
@@ -34,8 +33,7 @@
 
 - name: rm ssh-keygen
   local_action: shell rm  /tmp/heketi_key  /tmp/heketi_key.pub
-  when: inventory_hostname == groups['glusterfs'][0]
-  when: heketi_zone is defined
+  when: inventory_hostname == groups['glusterfs'][0] and heketi_zone is defined
 
 - name: enable ssh authorized_keys
   shell:  test -d $HOME/.ssh || mkdir -m 700 $HOME/.ssh
