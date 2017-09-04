@@ -1,0 +1,9 @@
+docker_version: 17.06.0.ce
+docker_direct_lvm: true
+docker_thinpooldev: /dev/vdb
+#ceph
+ceph: true
+ceph_version: jewel
+#glusterfs
+glusterfs: true
+glusterfs_version: 310

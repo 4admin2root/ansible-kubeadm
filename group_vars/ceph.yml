@@ -1,3 +1,4 @@
 #ceph
-ceph: true
-ceph_version: jewel
+#go to all.yml
+#ceph: true
+#ceph_version: jewel

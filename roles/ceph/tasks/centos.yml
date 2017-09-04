@@ -97,12 +97,23 @@
 - name: chmod
   shell: chmod +r /etc/ceph/ceph.client.admin.keyring
   when: inventory_hostname == groups['mon'][0]
+
+- name: set pg_num
+  shell: cd $HOME/k8s; ceph osd pool set rbd pg_num 128
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
+  tags: hostname
+
+- name: set pgp_num
+  shell: cd $HOME/k8s; ceph osd pool set rbd pgp_num 128
+  become: true
+  become_user: ceph
+  when: inventory_hostname == groups['mon'][0]
   tags: hostname
 
 
 #systemctl restart ceph-osd.target
 #public network = 10.9.5.0/24
 #cluster network = 10.9.5.0/24
-#ceph osd pool set rbd pg_num 256
-#ceph osd pool set rbd pgp_num 256
 # ceph client for k8s nodes

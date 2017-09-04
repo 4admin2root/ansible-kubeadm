@@ -1,0 +1,23 @@
+---
+#########################################################################
+# tested on centos 7
+# 2017-09-04
+# created by : lvzhijun
+########################################################################
+# base on vm image:CentOS7.2_1612
+- name: copy ceph repo file
+  template: src=ceph.repo dest=/etc/yum.repos.d/ceph.repo owner=root group=root mode=0640
+  when: ceph == true
+
+- name: install ceph-common
+  yum: name=ceph-common  state=present
+  when: ceph == true
+
+- name: install glusterfs-release
+  yum: name=centos-release-gluster{{ glusterfs_version }}  state=present
+  when: glusterfs == true
+
+- name: install glusterfs-fuse
+  yum: name=glusterfs-fuse  state=present
+  when: glusterfs == true
+
