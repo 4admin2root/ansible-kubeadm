@@ -12,17 +12,17 @@
      - test
 
 - name: get ceph key
-  shell: cd $HOME/k8s && ceph auth get-key client.admin > /dev/null && ceph auth get-key client.admin |base64
+  shell: cd $HOME/k8s && ceph auth get-key client.admin
   become: true
   become_user: ceph
-  register: ceph_key_base64
+  register: ceph_key
   when: inventory_hostname == groups['mon'][0] and ceph == true
   tags:
      - test
 
 - name: create secret in k8s
-  shell: source $HOME/.bash_profile && kubectl create secret generic ceph-secret-admin --from-literal=key='{{ hostvars[groups['mon'][0]].ceph_key_base64.stdout }}'  --type=kubernetes.io/rbd
-  when: inventory_hostname in groups["commander"] and hostvars[groups['mon'][0]].ceph_key_base64.rc == 0 and  ceph == true
+  shell: source $HOME/.bash_profile && kubectl create secret generic ceph-secret-admin --from-literal=key='{{ hostvars[groups['mon'][0]].ceph_key.stdout }}'  --type=kubernetes.io/rbd
+  when: inventory_hostname in groups["commander"] and hostvars[groups['mon'][0]].ceph_key.rc == 0 and  ceph == true
   tags:
      - test
 
