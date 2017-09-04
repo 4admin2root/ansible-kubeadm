@@ -39,7 +39,9 @@ done
 # please check vgdisplay and vgremove -f in manual
 ```
 ## todo:
-sync heketi.db  
+deal with  {{ vars['ansible_' + ka_interface]['ipv4']['address'] }}
+ceph.conf (hostname -s)  
+sync heketi.db
 test : ceph   
 why simplehttpserver not work sometimes  
 create loadbalance at front-end  

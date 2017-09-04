@@ -1,0 +1,20 @@
+---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: ceph-secret
+#data:
+#  key: QVFBRE1yMVlYdklYSGhBQW9YU0xubWdYaGpIZVhTMDFnRUlRZGc9PQo=
+#type: kubernetes.io/rbd
+#---
+apiVersion: storage.k8s.io/v1beta1
+kind: StorageClass
+metadata:
+   name: rbd
+provisioner: kubernetes.io/rbd
+parameters:
+    monitors: {{ groups['mon']|join(':6789,') }}:6789
+    adminId: admin
+    adminSecretName: ceph-secret-admin
+    pool: rbd
+    userSecretName: ceph-secret-admin

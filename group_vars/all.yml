@@ -1,6 +1,8 @@
 docker_version: 17.06.0.ce
 docker_direct_lvm: true
 docker_thinpooldev: /dev/vdb
+#k8s
+k8s_temp_dir: /opt/k8s_init
 #ceph
 ceph: true
 ceph_version: jewel

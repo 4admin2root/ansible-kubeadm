@@ -1,0 +1,33 @@
+---
+#########################################################################
+# tested on centos 7
+# 2017-09-04
+# created by : lvzhijun
+########################################################################
+# base on vm image:CentOS7.2_1612
+- name: template ceph-sc.yaml
+  template: src=ceph-sc.yaml dest={{ k8s_temp_dir }}
+  when: inventory_hostname in groups["commander"] and ceph == true
+  tags:
+     - test
+
+- name: get ceph key
+  shell: cd $HOME/k8s && ceph auth get-key client.admin > /dev/null && ceph auth get-key client.admin |base64
+  become: true
+  become_user: ceph
+  register: ceph_key_base64
+  when: inventory_hostname == groups['mon'][0] and ceph == true
+  tags:
+     - test
+
+- name: create secret in k8s
+  shell: source $HOME/.bash_profile && kubectl create secret generic ceph-secret-admin --from-literal=key='{{ hostvars[groups['mon'][0]].ceph_key_base64.stdout }}'  --type=kubernetes.io/rbd
+  when: inventory_hostname in groups["commander"] and hostvars[groups['mon'][0]].ceph_key_base64.rc == 0 and  ceph == true
+  tags:
+     - test
+
+- name: create StorageClass in k8s
+  shell: source $HOME/.bash_profile && kubectl apply -f {{ k8s_temp_dir }}/ceph-sc.yaml
+  when: inventory_hostname in groups["commander"] and ceph == true
+  tags:
+     - test
