@@ -9,13 +9,13 @@
 ########################################################################
 # base on vm image:CentOS7.2_1612
 - name: copy docker repo file
-  copy: src=docker.repo dest=/etc/yum.repos.d/docker.repo owner=root group=root mode=0640
+  copy: src=docker-ce.repo dest=/etc/yum.repos.d/docker.repo owner=root group=root mode=0640
 # install docker engine
 - name: install docker engine
   yum: name={{ item }} state=present
   with_items:
-        - docker-engine-{{ docker_version }}
-        - docker-engine-selinux-{{ docker_version }}
+        - docker-ce-{{ docker_version }}
+        #- docker-ce-selinux-{{ docker_version }}
         - device-mapper-persistent-data
         - lvm2
 # start docker
