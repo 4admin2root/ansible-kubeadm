@@ -39,6 +39,7 @@ done
 # please check vgdisplay and vgremove -f in manual
 ```
 ## todo:
+if docker installed , will not reinstall it
 deal with  {{ vars['ansible_' + ka_interface]['ipv4']['address'] }}  
 ceph.conf (hostname -s)  
 sync heketi.db

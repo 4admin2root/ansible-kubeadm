@@ -32,6 +32,10 @@
   when:  inventory_hostname in groups["commander"]
   tags: test
 
+- name: break task
+  fail: msg="not all pods are running,please check them"
+  when: hostvars[groups["commander"][0]]['result']['rc'] != 0
+
 - name: stop apiserver and do etcd_make_mirror scripts
   shell: mv /etc/kubernetes/manifests/kube-apiserver.yaml /etc/kubernetes/ && sleep 10 && cd {{ k8s_temp_dir }} && ./do_make_mirror.exp
   when:  inventory_hostname in groups["commander"]
