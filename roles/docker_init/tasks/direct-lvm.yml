@@ -25,4 +25,4 @@
 
 - name: backup docker files
   shell: mkdir /var/lib/docker.bk || mv /var/lib/docker/* /var/lib/docker.bk || rm -rf /var/lib/docker/
-  ignore_errors: true
+  ignore_errors: True

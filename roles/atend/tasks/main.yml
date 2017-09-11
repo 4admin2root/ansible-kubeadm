@@ -23,8 +23,9 @@
 - name: create secret in k8s
   shell: source $HOME/.bash_profile && kubectl create secret generic ceph-secret-admin --from-literal=key='{{ hostvars[groups['mon'][0]].ceph_key.stdout }}'  --type=kubernetes.io/rbd
   when: inventory_hostname in groups["commander"] and hostvars[groups['mon'][0]].ceph_key.rc == 0 and  ceph == true
+  ignore_errors: True
   tags:
-     - test
+     - testignore
 
 - name: create StorageClass in k8s
   shell: source $HOME/.bash_profile && kubectl apply -f {{ k8s_temp_dir }}/ceph-sc.yaml

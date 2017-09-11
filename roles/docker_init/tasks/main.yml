@@ -17,7 +17,6 @@
         - docker-engine-{{ docker_version }}
         - docker-engine-selinux-{{ docker_version }}
         - device-mapper-persistent-data
-        - docker-engine-selinux-{{ docker_version }}
         - lvm2
 # start docker
 - name: create docker dir

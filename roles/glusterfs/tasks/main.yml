@@ -45,7 +45,7 @@
 
 - name: backup heketi database
   shell: cp -r /var/lib/heketi /var/lib/heketi.`date +%s` || rm -rf /var/lib/heketi/
-  ignore_errors: yes
+  ignore_errors: True
   when: heketi_zone is defined
 
 - name: template heketi.json

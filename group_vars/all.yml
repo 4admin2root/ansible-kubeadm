@@ -1,4 +1,4 @@
-docker_version: 17.03.0.ce
+docker_version: 17.05.0.ce
 #docker_direct_lvm: true
 docker_direct_lvm: false
 docker_thinpooldev: /dev/vdb
