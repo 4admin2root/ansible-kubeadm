@@ -16,7 +16,7 @@
 ###################### for k8s configure
 for i in {1..6}
 do
-ssh k8sprod$i 'sudo kubeadm reset;sudo docker stop etcd ;sudo docker rm etcd;sudo rm -rf /opt/etcd/;sudo rm -fr /var/lib/etcd;sudo rm -rf /opt/k8s_init;sudo service nginx stop;sudo service keepalived stop;sudo ip addr del 10.9.5.243/32 dev eth0'
+ssh k8sprod$i 'sudo rm -rf /var/lib/kubelet;sudo kubeadm reset;sudo docker stop etcd ;sudo docker rm etcd;sudo rm -rf /opt/etcd/;sudo rm -fr /var/lib/etcd;sudo rm -rf /opt/k8s_init;sudo service nginx stop;sudo service keepalived stop;sudo ip addr del 10.9.5.243/32 dev eth0'
 done
 ###################### for kube packages
 for i in {1..6}
@@ -39,7 +39,7 @@ done
 # please check vgdisplay and vgremove -f in manual
 ```
 ## todo:
-deal with  {{ vars['ansible_' + ka_interface]['ipv4']['address'] }}
+deal with  {{ vars['ansible_' + ka_interface]['ipv4']['address'] }}  
 ceph.conf (hostname -s)  
 sync heketi.db
 test : ceph   

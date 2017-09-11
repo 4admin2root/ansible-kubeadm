@@ -8,7 +8,7 @@ KUBE_ETCD_IMAGE: "4admin2root/etcd-amd64:3.0.17"
 cgroup_driver: cgroupfs
 etcd_docker_url: "4admin2root/etcd-amd64:3.0.17"
 etcd_data_dir: /opt/etcd
-network_provider: weave  #options:calico,weave,flannel
+network_provider: calico  #options:calico,weave,flannel
 flannel_docker_url: "4admin2root/flannel:v0.7.1-amd64"
 flannel_network_cidr: 10.244.0.0/16
 calico_etcd_endpoints: "http://10.96.232.136:6666"
